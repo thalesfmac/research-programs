@@ -259,7 +259,9 @@ end module system_procedures
 
 
 program main
-    use, intrinsic :: iso_fortran_env, only : dp => real64, input_unit
+    use, intrinsic :: iso_fortran_env, only : dp => real64
+    use precision
+    use constants, only : INV_PHI
     use system_procedures
     implicit none
 
@@ -270,9 +272,6 @@ program main
     real(dp) :: omega, g
     logical :: use_golden
 
-    ! complex(dp), parameter :: CI = (0.0_dp, 1.0_dp)
-    real(dp), parameter :: GOLDEN = (sqrt(5.0_dp) - 1.0_dp) / 2.0_dp
-
     real(dp), allocatable :: energies(:), phis(:), transmissions(:, :)
     real(dp) :: E, Emin, Emax, phi
     real(dp), parameter :: ETA = 1.0e-10_dp
@@ -281,7 +280,7 @@ program main
 
     call readInput()
 
-    if (use_golden) beta = GOLDEN
+    if (use_golden) beta = INV_PHI
 
     call writeInput("parameters_" // trim(outname) // ".txt")
 
@@ -334,6 +333,7 @@ program main
     contains
 
     subroutine readInput()
+        use, intrinsic :: iso_fortran_env, only : input_unit
         read(input_unit,*) outname
         read(input_unit,*) Lx, NEpoints, Ndisorder
         read(input_unit,*) Nph
