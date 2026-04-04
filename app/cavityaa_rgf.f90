@@ -7,12 +7,12 @@ module system_procedures
     use peierls_operator
     use rng_utils
     use array_io
-    use disordered_systems, only : random_phases, aa_slice_hamiltonian
+    use disordered_systems, only : aa_random_phases, aa_slice_hamiltonian
     use :: lead_green_function
     implicit none
 
     private
-    public :: energy_grid, random_phases, rgf_transmission
+    public :: energy_grid, aa_random_phases, rgf_transmission
     public :: save_array_1d, save_array_2d, save_array_bin
 
     contains
@@ -143,7 +143,7 @@ program main
         Egrid = energies, &
         Emin = max(muS - 2.0_dp*tlead, muD - 2.0_dp*tlead), &
         Emax = min(muS + 2.0_dp*tlead, muD + 2.0_dp*tlead))
-    call random_phases(phis)
+    call aa_random_phases(phis)
 
     do i = 1, NEpoints
         E = energies(i)
