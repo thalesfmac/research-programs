@@ -10,7 +10,7 @@ program main
     real(dp) :: t, V, beta
     real(dp) :: tcS, tcD, tlead, muS, muD
     real(dp) :: omega, g
-    logical :: use_golden
+    ! logical :: use_golden
 
     real(dp), allocatable :: energies(:), phis(:), transmissions(:, :)
     real(dp) :: Emin, Emax
@@ -20,7 +20,7 @@ program main
 
     call readInput()
 
-    if (use_golden) beta = INV_PHI
+    ! if (use_golden) beta = INV_PHI
 
     call writeInput("parameters_" // trim(outname) // ".txt")
 
@@ -42,20 +42,20 @@ program main
     do i = 1, NEpoints
         do j = 1, Ndisorder
             transmissions(i, j) = rgf_transmission( &
-                E      = energies(i),      &
-                eta    = ETA,    &
-                Lx     = Lx,     &
-                Nph    = Nph,    &
-                t      = t,      &
-                V      = V,      &
-                beta   = INV_PHI,   &
-                phi    = phis(j),    &
-                g      = g,      &
-                omega  = omega,  &
-                tcL    = tcS,    &
-                tcR    = tcD,    &
-                tlead  = tlead,  &
-                muL    = muS,    &
+                E      = energies(i),  &
+                eta    = ETA,          &
+                Lx     = Lx,           &
+                Nph    = Nph,          &
+                t      = t,            &
+                V      = V,            &
+                beta   = INV_PHI,      &
+                phi    = phis(j),      &
+                g      = g,            &
+                omega  = omega,        &
+                tcL    = tcS,          &
+                tcR    = tcD,          &
+                tlead  = tlead,        &
+                muL    = muS,          &
                 muR    = muD )
         end do
     end do
@@ -103,7 +103,7 @@ program main
         write(unit, *) "tlead=", tlead
         write(unit, *) "muS=", muS
         write(unit, *) "muD=", muD
-        write(unit, *) "use_golden=", use_golden
+        ! write(unit, *) "use_golden=", use_golden
 
         close(unit)
     end subroutine writeInput
