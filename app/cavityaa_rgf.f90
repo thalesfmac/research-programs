@@ -1,12 +1,13 @@
 module system_procedures
     use, intrinsic :: iso_fortran_env, only : int32
     use precision, only : dp
-    use constants, only : CI
+    use constants
     use lapack_blas, only : invert
     use matrix_operations, only : identity_matrix
     use peierls_operator
     use rng_utils
     use array_io
+    use disordered_systems, only : aa_slice_hamiltonian
     implicit none
 
     private
@@ -34,36 +35,10 @@ module system_procedures
 
     subroutine random_phases(phi_vals)
         real(dp), intent(out) :: phi_vals(:)
-        real(dp), parameter :: PI = acos(-1.0_dp)
 
         call random_number(phi_vals)
         phi_vals = 2.0_dp * PI * phi_vals
     end subroutine random_phases
-
-    subroutine slice_hamiltonian(h_i, i, V, beta, phi, omega)
-        integer, intent(in) :: i
-        real(dp), intent(in) :: V, beta, phi, omega
-        complex(dp), intent(out) ::  h_i(0:, 0:)
-
-        integer :: Nph, n
-        real(dp), parameter :: PI = acos(-1.0_dp)
-
-        if (lbound(h_i,1) /= 0 .or. lbound(h_i,2) /= 0) then
-            error stop "slice_hamiltonian: h_i deve ter limites inferiores 0,0"
-        end if
-
-        if (ubound(h_i,1) /= ubound(h_i,2)) then
-            error stop "slice_hamiltonian: h_i deve ser quadrada"
-        end if
-
-        h_i = (0.0_dp, 0.0_dp)
-
-        Nph = ubound(h_i, dim=1)
-        do n = 0, Nph
-            h_i(n, n) = V * cos(2.0_dp * PI * beta * real(i, kind=dp) + phi) + real(n, kind=dp) * omega
-        end do
-
-    end subroutine slice_hamiltonian
 
     function f(x) result(res)
         real(dp), intent(in) :: x
@@ -93,7 +68,7 @@ module system_procedures
         real(dp) :: TT
 
         integer :: i
-        complex(dp), dimension(0:Nph, 0:Nph) :: Id, U, z, h_i, G_NN
+        complex(dp), dimension(0:Nph, 0:Nph) :: Id, h_i, U, z, G_NN
         complex(dp) :: G_0N(0:0, 0:Nph)
         complex(dp) :: U_01(0:0, 0:Nph)
         complex(dp) :: U_NNp1(0:Nph, 0:0)
@@ -130,7 +105,7 @@ module system_procedures
 
         ! Sítios internos: 2, ..., Lx
         do i = 2, Lx
-            call slice_hamiltonian(h_i, i, V, beta, phi, omega)
+            call aa_slice_hamiltonian(h_i, i, V, beta, phi, omega)
             z = cmplx(E, eta, kind=dp) * Id - h_i - matmul( conjg(transpose(U)), matmul( G_NN, U ) )
             call invert(z)
             G_NN = z
