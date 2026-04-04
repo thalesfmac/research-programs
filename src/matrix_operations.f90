@@ -3,7 +3,7 @@ module matrix_operations
     implicit none
     private
 
-    public :: identity_matrix
+    public :: identity_matrix, trace
 
     contains
 
@@ -12,9 +12,8 @@ module matrix_operations
         integer :: lo, hi, i
 
         if (ubound(A,1) /= ubound(A,2)) then
-            error stop "identity_matrix: I must be square"
+            error stop "identity_matrix: A must be square"
         end if
-
         lo = lbound(A,1)
         hi = ubound(A,1)
 
@@ -23,5 +22,22 @@ module matrix_operations
             A(i, i) = (1.0_dp, 0.0_dp)
         end do
     end subroutine identity_matrix
+
+    function trace(A) result(retval)
+        complex(dp), intent(in) :: A(:,:)
+        complex(dp) :: retval
+        integer :: lo, hi, i
+
+        if (ubound(A,1) /= ubound(A,2)) then
+            error stop "identity_matrix: A must be square"
+        end if
+        lo = lbound(A,1)
+        hi = ubound(A,1)
+
+        retval = (0.0_dp, 0.0_dp)
+        do i = lo, hi
+            retval = retval + A(i, i)
+        end do
+    end function trace
 
 end module matrix_operations
