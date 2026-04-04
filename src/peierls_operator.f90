@@ -1,9 +1,11 @@
 module peierls_operator
     use :: precision, only : dp
     use :: constants, only : CI
-    implicit none
-    private
+    use :: matrix_operations
 
+    implicit none
+
+    private
     public :: peierls_exp
 
     contains
@@ -25,13 +27,7 @@ module peierls_operator
         real(dp), intent(out) :: P(0:, 0:)
         integer :: M, j, Nph
 
-        ! if (lbound(P,1) /= 0 .or. lbound(P,2) /= 0) then
-        !     error stop "build_P: P must have lbounds 0,0"
-        ! end if
-
-        if (ubound(P,1) /= ubound(P,2)) then
-            error stop "build_P: P must be square"
-        end if
+        call assert_square(P, "P")
 
         Nph = ubound(P, 1)
 
@@ -56,13 +52,7 @@ module peierls_operator
         complex(dp) :: hNM
         real(dp) :: prefactor
 
-        ! if (lbound(A,1) /= 0 .or. lbound(A,2) /= 0) then
-        !     error stop "peierls_exp: A deve ter limites inferiores 0,0"
-        ! end if
-
-        if (ubound(A,1) /= ubound(A,2)) then
-            error stop "peierls_exp: A deve ser quadrada"
-        end if
+        call assert_square(A, "A")
 
         Nph = ubound(A,1)
 

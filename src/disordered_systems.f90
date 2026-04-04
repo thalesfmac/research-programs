@@ -1,7 +1,10 @@
 module disordered_systems
     use :: precision, only : dp
     use :: constants, only : PI
+    use :: lapack_blas
+    use :: matrix_operations
     use :: lead_green_function
+    use :: peierls_operator
     implicit none
 
     private
@@ -46,14 +49,12 @@ module disordered_systems
     subroutine cavaa_slice_hamiltonian(h_i, i, V, beta, phi, omega)
         integer, intent(in) :: i
         real(dp), intent(in) :: V, beta, phi, omega
-        complex(dp), intent(out) ::  h_i(0:, 0:)
+        complex(dp), intent(out) :: h_i(0:, 0:)
 
         integer :: Nph, n
         real(dp) :: V_i
 
-        if (ubound(h_i,1) /= ubound(h_i,2)) then
-            error stop "aa_slice_hamiltonian: h_i must be square"
-        end if
+        call assert_square(h_i, "h_i")
         Nph = ubound(h_i, dim=1)
 
         h_i = (0.0_dp, 0.0_dp)

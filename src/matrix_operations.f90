@@ -1,11 +1,76 @@
 module matrix_operations
     use :: precision, only : dp
     implicit none
-    private
 
+    private
     public :: identity_matrix, trace
+    public :: assert_square, assert_matmul_compatibility
+
+    interface assert_square
+        module procedure assert_square_cdp
+        module procedure assert_square_rdp
+    end interface
+
+    interface assert_matmul_compatibility
+        module procedure assert_matmul_compatibility_cdp
+        module procedure assert_matmul_compatibility_rdp
+    end interface
 
     contains
+
+    subroutine assert_square_cdp(A, name)
+        complex(dp), intent(in) :: A(:, :)
+        character(len=*), intent(in) :: name
+
+        if (size(A,1) /= size(A,2)) then
+            error stop trim(name) // " must be square"
+        end if
+    end subroutine assert_square_cdp
+
+    subroutine assert_square_rdp(A, name)
+        real(dp), intent(in) :: A(:, :)
+        character(len=*), intent(in) :: name
+
+        if (size(A,1) /= size(A,2)) then
+            error stop trim(name) // " must be square"
+        end if
+    end subroutine assert_square_rdp
+
+    subroutine assert_matmul_compatibility_cdp(A, B, nameA, nameB)
+        complex(dp), intent(in) :: A(:, :), B(:, :)
+        character(len=*), intent(in) :: nameA, nameB
+
+        character(len=32) :: a1, a2, b1, b2
+
+        if (size(A,2) /= size(B,1)) then
+            write(a1, '(I0)') size(A,1)
+            write(a2, '(I0)') size(A,2)
+            write(b1, '(I0)') size(B,1)
+            write(b2, '(I0)') size(B,2)
+
+            error stop trim(nameA) // " (" // trim(a1) // "," // trim(a2) // &
+                ") and " // trim(nameB) // " (" // trim(b1) // "," // trim(b2) // &
+                ") are not compatible for matmul"
+        end if
+    end subroutine assert_matmul_compatibility_cdp
+
+    subroutine assert_matmul_compatibility_rdp(A, B, nameA, nameB)
+        real(dp), intent(in) :: A(:, :), B(:, :)
+        character(len=*), intent(in) :: nameA, nameB
+
+        character(len=32) :: a1, a2, b1, b2
+
+        if (size(A,2) /= size(B,1)) then
+            write(a1, '(I0)') size(A,1)
+            write(a2, '(I0)') size(A,2)
+            write(b1, '(I0)') size(B,1)
+            write(b2, '(I0)') size(B,2)
+
+            error stop trim(nameA) // " (" // trim(a1) // "," // trim(a2) // &
+                ") and " // trim(nameB) // " (" // trim(b1) // "," // trim(b2) // &
+                ") are not compatible for matmul"
+        end if
+    end subroutine assert_matmul_compatibility_rdp
 
     subroutine identity_matrix(A)
         complex(dp), intent(out) :: A(:,:)
