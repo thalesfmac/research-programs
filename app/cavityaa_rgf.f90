@@ -4,8 +4,7 @@ program main
     use constants, only : INV_PHI
     use rng_utils
     use array_io
-    use disordered_systems, only : aa_random_phases
-    use transmittance
+    use disordered_systems
     implicit none
 
     character(len=80) :: outname
