@@ -5,7 +5,7 @@ module disordered_systems
 
     private
     public :: aa_random_phases
-    public :: aa_onsite_potential, aa_slice_hamiltonian
+    public :: aa_onsite_potential, cavaa_slice_hamiltonian
 
     contains
 
@@ -24,7 +24,7 @@ module disordered_systems
         V_i = V * cos(2.0_dp * PI * beta * real(site, kind=dp) + phi)
     end function aa_onsite_potential
 
-    subroutine aa_slice_hamiltonian(h_i, i, V, beta, phi, omega)
+    subroutine cavaa_slice_hamiltonian(h_i, i, V, beta, phi, omega)
         integer, intent(in) :: i
         real(dp), intent(in) :: V, beta, phi, omega
         complex(dp), intent(out) ::  h_i(0:, 0:)
@@ -43,7 +43,7 @@ module disordered_systems
         do n = 0, Nph
             h_i(n, n) = cmplx(V_i + real(n, kind=dp) * omega, kind=dp)
         end do
-    end subroutine aa_slice_hamiltonian
+    end subroutine cavaa_slice_hamiltonian
 
 
 end module disordered_systems
