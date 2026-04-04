@@ -5,6 +5,7 @@ module system_procedures
     use lapack_blas, only : invert
     use matrix_operations, only : identity_matrix
     use peierls_operator
+    use rng_utils
     implicit none
 
     private
@@ -12,22 +13,6 @@ module system_procedures
     public :: save_array_1d, save_array_2d, save_array_bin
 
     contains
-
-    subroutine rng_initialize(seed)
-        integer, intent(in) :: seed
-
-        integer :: n, j
-        integer, allocatable :: seed_vec(:)
-
-        call random_seed(size=n)
-        allocate(seed_vec(n))
-
-        ! seed_vec = seed
-        seed_vec = seed + 37 * [(j - 1, j=1,n)]
-
-        call random_seed(put=seed_vec)
-        deallocate(seed_vec)
-    end subroutine rng_initialize
 
     subroutine save_array_1d(filename, A)
         character(len=*), intent(in) :: filename
