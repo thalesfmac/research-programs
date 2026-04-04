@@ -2,12 +2,15 @@ program main
     use, intrinsic :: iso_fortran_env, only : dp => real64
     use precision
     use constants, only : INV_PHI
+    use rng_utils
+    use array_io
+    use disordered_systems, only : aa_random_phases
     use transmittance
     implicit none
 
     character(len=80) :: outname
     integer :: Lx, Nph, seed, Ndisorder, NEpoints
-    real(dp) :: t, V, beta
+    real(dp) :: t, V
     real(dp) :: tcS, tcD, tlead, muS, muD
     real(dp) :: omega, g
     ! logical :: use_golden
@@ -74,7 +77,7 @@ program main
         read(input_unit,*) Lx, NEpoints, Ndisorder
         read(input_unit,*) Nph
         read(input_unit,*) seed
-        read(input_unit,*) t, V, beta
+        read(input_unit,*) t, V
         read(input_unit,*) omega, g
         read(input_unit,*) tcS, tcD, tlead, muS, muD
         ! read(input_unit,*) use_golden
@@ -95,7 +98,7 @@ program main
         write(unit, *) "Number of disorder conf.=", Ndisorder
         write(unit, *) "t=", t
         write(unit, *) "V=", V
-        write(unit, *) "beta=", beta
+        write(unit, *) "beta=", INV_PHI
         write(unit, *) "omega=", omega
         write(unit, *) "g=", g
         write(unit, *) "tcS=", tcS

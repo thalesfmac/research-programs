@@ -1,6 +1,11 @@
 module transmittance
     use :: precision, only : dp
+    use :: lapack_blas, only : invert
+    use :: matrix_operations
+
     use :: lead_green_function, only : surface_gf_1d
+    use :: peierls_operator
+    use :: disordered_systems
     implicit none
 
     private
@@ -61,7 +66,7 @@ module transmittance
         end if
 
         ! Primeiro sítio
-        call slice_hamiltonian(h_i, 1, V, beta, phi, omega)
+        call cavaa_slice_hamiltonian(h_i, 1, V, beta, phi, omega)
         z = cmplx(E, eta, kind=dp) * Id - h_i - matmul( conjg(transpose(U_01)), matmul(g_L, U_01) )
         call invert(z)
         G_NN = z
@@ -69,7 +74,7 @@ module transmittance
 
         ! Sítios internos: 2, ..., Lx
         do i = 2, Lx
-            call aa_slice_hamiltonian(h_i, i, V, beta, phi, omega)
+            call cavaa_slice_hamiltonian(h_i, i, V, beta, phi, omega)
             z = cmplx(E, eta, kind=dp) * Id - h_i - matmul( conjg(transpose(U)), matmul( G_NN, U ) )
             call invert(z)
             G_NN = z
