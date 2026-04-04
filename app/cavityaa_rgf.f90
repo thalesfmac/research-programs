@@ -8,6 +8,7 @@ module system_procedures
     use rng_utils
     use array_io
     use disordered_systems, only : aa_slice_hamiltonian
+    use :: lead_green_function
     implicit none
 
     private
@@ -39,27 +40,6 @@ module system_procedures
         call random_number(phi_vals)
         phi_vals = 2.0_dp * PI * phi_vals
     end subroutine random_phases
-
-    function f(x) result(res)
-        real(dp), intent(in) :: x
-        complex(dp) :: res
-        ! real(dp), parameter :: ETA = 1.0e-12_dp
-        ! real(dp), parameter :: ETA = 0.0_dp
-
-        if (abs(x) >= 2.0_dp) error stop "f: |x| must be < 2"
-        ! res = cmplx(x, kind=dp) - CI * sqrt(4.0_dp - x*x)
-        res = cmplx(x, -sqrt(4.0_dp - x*x), kind=dp)
-    end function f
-
-    function surface_gf_1d(E, tlead, mu) result(gs)
-        real(dp), intent(in) :: E, tlead, mu
-        complex(dp) :: gs
-
-        real(dp) :: x
-
-        x = (E - mu) / tlead
-        gs = f(x) / cmplx(2.0_dp*tlead, kind=dp)
-    end function surface_gf_1d
 
     function rgf_transmission(E, eta, Lx, Nph, t, V, beta, phi, g, omega, tcL, tcR, tlead, muL, muR) result(TT)
         integer, intent(in) :: Lx, Nph
