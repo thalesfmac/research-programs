@@ -7,12 +7,12 @@ module system_procedures
     use peierls_operator
     use rng_utils
     use array_io
-    use disordered_systems, only : aa_slice_hamiltonian
+    use disordered_systems, only : random_phases, aa_slice_hamiltonian
     use :: lead_green_function
     implicit none
 
     private
-    public :: rng_initialize, energy_grid, random_phases, rgf_transmission
+    public :: energy_grid, random_phases, rgf_transmission
     public :: save_array_1d, save_array_2d, save_array_bin
 
     contains
@@ -33,13 +33,6 @@ module system_procedures
             Egrid(i) = Emin + real(i, dp) * dE
         end do
     end subroutine energy_grid
-
-    subroutine random_phases(phi_vals)
-        real(dp), intent(out) :: phi_vals(:)
-
-        call random_number(phi_vals)
-        phi_vals = 2.0_dp * PI * phi_vals
-    end subroutine random_phases
 
     function rgf_transmission(E, eta, Lx, Nph, t, V, beta, phi, g, omega, tcL, tcR, tlead, muL, muR) result(TT)
         integer, intent(in) :: Lx, Nph

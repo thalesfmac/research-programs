@@ -4,9 +4,17 @@ module disordered_systems
     implicit none
 
     private
+    public :: random_phases
     public :: aa_onsite_potential, aa_slice_hamiltonian
 
     contains
+
+    subroutine random_phases(phi_vals)
+        real(dp), intent(out) :: phi_vals(:)
+
+        call random_number(phi_vals)
+        phi_vals = 2.0_dp * PI * phi_vals
+    end subroutine random_phases
 
     function aa_onsite_potential(V, site, beta, phi) result(V_i)
         real(dp), intent(in) :: V, beta, phi
