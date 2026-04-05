@@ -39,6 +39,7 @@ module lead_green_function
         call assert_square(surf_gf_l, "surf_gf_l")
         call assert_matmul_compatibility(surf_gf_l, u_left_dagger, "surf_gf_l", "u_left_dagger")
         call assert_matmul_compatibility(u_left, surf_gf_l, "u_left", "surf_gf_l")
+        call assert_same_shape(surf_gf_l, sigma_left, "surf_gf_l", "sigma_left")
 
         u_left_dagger = conjg(transpose(u_left))
 
@@ -52,6 +53,7 @@ module lead_green_function
 
         complex(dp) :: u_right_dagger(size(u_right, 2), size(u_right, 1))
 
+        call assert_same_shape(surf_gf_r, sigma_right, "surf_gf_r", "sigma_right")
         call assert_square(surf_gf_r, "surf_gf_r")
         call assert_matmul_compatibility(surf_gf_r, u_right_dagger, "surf_gf_r", "u_left_dagger")
         call assert_matmul_compatibility(u_right, surf_gf_r, "u_left", "surf_gf_r")
@@ -62,12 +64,13 @@ module lead_green_function
 
     end subroutine surface_self_energy_right
 
-    ! subroutine broadening(tlead, surf_gf, gamma)
-    !     real(dp), intent(in) :: tlead
-    !     complex(dp), intent(in) :: surf_gf(:, :)
-    !     complex(dp), intent(out) :: gamma()
+    subroutine broadening(sigma, gam)
+        complex(dp), intent(in) :: sigma(:, :)
+        complex(dp), intent(out) :: gam(:, :)
 
+        call assert_same_shape(sigma, gam, "sigma", "gam")
 
-    ! end subroutine broadening
+        gam = CI * (sigma - conjg( transpose( sigma ) ))
+    end subroutine broadening
 
 end module lead_green_function
