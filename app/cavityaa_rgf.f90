@@ -43,7 +43,7 @@ program main
 
     do i = 1, NEpoints
         do j = 1, Ndisorder
-            transmissions(i, j) = rgf_transmission( &
+            transmissions(i, j) = cavaa_rgf_transmission( &
                 E      = energies(i),  &
                 eta    = ETA,          &
                 Lx     = Lx,           &
