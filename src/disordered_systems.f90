@@ -10,7 +10,7 @@ module disordered_systems
     private
     public :: aa_random_phases
     public :: aa_onsite_potential, cavaa_slice_hamiltonian
-    public :: energy_grid, rgf_transmission
+    public :: energy_grid, cavaa_rgf_transmission
 
     contains
 
@@ -65,7 +65,7 @@ module disordered_systems
         end do
     end subroutine cavaa_slice_hamiltonian
 
-    function rgf_transmission(E, eta, Lx, Nph, t, V, beta, phi, g, omega, tcL, tcR, tlead, muL, muR) result(TT)
+    function cavaa_rgf_transmission(E, eta, Lx, Nph, t, V, beta, phi, g, omega, tcL, tcR, tlead, muL, muR) result(TT)
         integer, intent(in) :: Lx, Nph
         real(dp), intent(in) :: E, eta, t, V, beta, phi, g, omega
         real(dp), intent(in) :: tcL, tcR, tlead, muL, muR
@@ -130,6 +130,6 @@ module disordered_systems
         ! Tmat = abs( matmul( matmul(gamma_L, G_0Np1), matmul(gamma_R, conjg(transpose(G_0Np1))) ) )
         ! TT = real(Tmat(0,0), kind=dp)
         TT = gamma_L(0,0) * gamma_R(0,0) * abs(G_0Np1(0,0))**2
-    end function rgf_transmission
+    end function cavaa_rgf_transmission
 
 end module disordered_systems
