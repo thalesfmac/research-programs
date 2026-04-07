@@ -121,7 +121,7 @@ module lapack_blas
           case ('T','t','C','c')
             a_rows = size(A,2); a_cols = size(A,1)
           case default
-            error stop "gemm: transa deve ser 'N','T' ou 'C'"
+            error stop "gemm: transa must be 'N','T' or 'C'"
         end select
 
         select case (tb)
@@ -130,15 +130,15 @@ module lapack_blas
           case ('T','t','C','c')
             b_rows = size(B,2); b_cols = size(B,1)
           case default
-            error stop "gemm: transb deve ser 'N','T' ou 'C'"
+            error stop "gemm: transb must be 'N','T' or 'C'"
         end select
 
         m = a_rows
         k = a_cols
         n = b_cols
 
-        if (b_rows /= k) error stop "gemm: dimensoes incompativeis"
-        if (size(C,1) /= m .or. size(C,2) /= n) error stop "gemm: C tem dimensoes erradas"
+        if (b_rows /= k) error stop "gemm: A and B have imcompatible dimensions"
+        if (size(C,1) /= m .or. size(C,2) /= n) error stop "gemm: C have imcompatible dimensions with A*B"
 
         lda = size(A,1)
         ldb = size(B,1)
