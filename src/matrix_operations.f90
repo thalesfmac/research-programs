@@ -116,9 +116,7 @@ module matrix_operations
         complex(dp), intent(out) :: A(:,:)
         integer :: lo, hi, i
 
-        if (ubound(A,1) /= ubound(A,2)) then
-            error stop "identity_matrix: A must be square"
-        end if
+        call assert_square(A, "A")
         lo = lbound(A,1)
         hi = ubound(A,1)
 
@@ -133,9 +131,7 @@ module matrix_operations
         complex(dp) :: retval
         integer :: lo, hi, i
 
-        if (ubound(A,1) /= ubound(A,2)) then
-            error stop "identity_matrix: A must be square"
-        end if
+        call assert_square(A, "A")
         lo = lbound(A,1)
         hi = ubound(A,1)
 
