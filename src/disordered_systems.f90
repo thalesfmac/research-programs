@@ -5,6 +5,7 @@ module disordered_systems
     use :: matrix_operations
     use :: lead_green_function
     use :: peierls_operator
+    use :: transmittance
     implicit none
 
     private
@@ -72,7 +73,7 @@ module disordered_systems
         real(dp) :: TT
 
         integer :: i
-        complex(dp), dimension(0:Nph, 0:Nph) :: Id, h_i, U, z, G_NN
+        complex(dp), dimension(0:Nph, 0:Nph) :: cE, h_i, U, z, G_NN
         complex(dp) :: G_0N(0:0, 0:Nph)
         complex(dp) :: U_01(0:0, 0:Nph)
         complex(dp) :: U_NNp1(0:Nph, 0:0)
@@ -81,7 +82,8 @@ module disordered_systems
         complex(dp), dimension(0:0, 0:0) :: sigma_L, sigma_R
         real(dp), dimension(0:0, 0:0) :: gamma_L, gamma_R
 
-        call identity_matrix(Id)
+        call identity_matrix(cE)
+        cE = cmplx(E, eta, kind=dp) * cE
 
         g_L(0, 0) = surface_gf_1d(E, tlead, muL)
         g_R(0, 0) = surface_gf_1d(E, tlead, muR)
@@ -102,27 +104,33 @@ module disordered_systems
 
         ! Primeiro sítio
         call cavaa_slice_hamiltonian(h_i, 1, V, beta, phi, omega)
-        z = cmplx(E, eta, kind=dp) * Id - h_i - matmul( conjg(transpose(U_01)), matmul(g_L, U_01) )
-        call invert(z)
-        G_NN = z
-        G_0N = matmul( g_L, matmul(U_01, G_NN) )
+        ! z = cmplx(E, eta, kind=dp) * Id - h_i - matmul( conjg(transpose(U_01)), matmul(g_L, U_01) )
+        ! call invert(z)
+        ! G_NN = z
+        ! G_0N = matmul( g_L, matmul(U_01, G_NN) )
+        call rgf_step(cE, h_i, U_01, G_NN, G_0N)
 
         ! Sítios internos: 2, ..., Lx
         do i = 2, Lx
             call cavaa_slice_hamiltonian(h_i, i, V, beta, phi, omega)
-            z = cmplx(E, eta, kind=dp) * Id - h_i - matmul( conjg(transpose(U)), matmul( G_NN, U ) )
-            call invert(z)
-            G_NN = z
-            G_0N = matmul( G_0N, matmul( U, G_NN ) )
+            ! z = cmplx(E, eta, kind=dp) * Id - h_i - matmul( conjg(transpose(U)), matmul( G_NN, U ) )
+            ! call invert(z)
+            ! G_NN = z
+            ! G_0N = matmul( G_0N, matmul( U, G_NN ) )
+            call rgf_step(cE, h_i, U, G_NN, G_0N)
         end do
 
         ! Lead R
-        z_2 = gR_inv - matmul( conjg(transpose(U_NNp1)), matmul( G_NN, U_NNp1 ) )
-        call invert(z_2)
-        G_0Np1 = matmul( G_0N, matmul( U_NNp1, z_2 ) )
+        ! z_2 = gR_inv - matmul( conjg(transpose(U_NNp1)), matmul( G_NN, U_NNp1 ) )
+        ! call invert(z_2)
+        ! G_0Np1 = matmul( G_0N, matmul( U_NNp1, z_2 ) )
+
+        call rgf_last_step(g_R, U_NNp1, G_NN, G_0N, G_0Np1)
 
         sigma_L = cmplx(tlead * tlead, kind=dp) * g_L
         sigma_R = cmplx(tlead * tlead, kind=dp) * g_R
+
+        ! call surface_self_energy_left(g_L)
 
         gamma_L = - 2.0_dp * aimag(sigma_L)
         gamma_R = - 2.0_dp * aimag(sigma_R)
