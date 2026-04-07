@@ -45,3 +45,4 @@
 *.dat
 *.bin
 *.txt
+.vscode/settings.json
