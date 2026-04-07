@@ -1,47 +1,54 @@
 module transmittance
     use :: precision, only : dp
-    use :: lapack_blas, only : invert
+    use :: lapack_blas, only : invert, gemm
     use :: matrix_operations
     implicit none
 
     private
     public :: caroli_transmission
+    public :: rgf_step, rgf_last_step
 
     contains
 
-    function caroli_transmission(G, Gamma_L, Gamma_R) result(T)
-        complex(dp), intent(in) :: G(:,:), Gamma_L(:,:), Gamma_R(:,:)
+    function caroli_transmission(gf, Gamma_L, Gamma_R) result(T)
+        complex(dp), intent(in) :: gf(:,:), Gamma_L(:,:), Gamma_R(:,:)
         real(dp) :: T
 
-        complex(dp), allocatable :: G_a(:,:), tmp(:,:)
+        integer :: k, l, m, n, p, q
+        complex(dp), allocatable :: tmp1(:,:), tmp2(:,:), tmp3(:,:)
 
-        G_a = conjg(transpose(G))
-        tmp = matmul4(Gamma_L, G, Gamma_R, G_a)
+        k = size(gf, dim=1); l = size(gf, dim=2)
+        m = size(Gamma_L, dim=1); n = size(Gamma_L, dim=2)
+        p = size(Gamma_R, dim=1); q = size(Gamma_R, dim=2)
 
-        T = real(trace(tmp), kind=dp)
+        allocate(tmp1(m, l), tmp2(p, k), tmp3(m, k))
+
+        call gemm(Gamma_L, gf, tmp1)
+        call gemm(Gamma_R, gf, tmp2, transb="C")
+        call gemm(tmp1, tmp2, tmp3)
+
+        T = real(trace(tmp3), kind=dp)
     end function caroli_transmission
 
-    subroutine rgf_step(E, eta, Id, h_i, U_couple, G_NN, G_0N)
-        real(dp), intent(in) :: E, eta
-        complex(dp), intent(in) :: Id(:,:), h_i(:,:), U_couple(:,:)
+    subroutine rgf_step(cE, h_i, U_couple, G_NN, G_0N)
+        complex(dp), intent(in) :: cE(:, :), h_i(:,:), U_couple(:,:)
         complex(dp), intent(inout) :: G_NN(:,:), G_0N(:,:)
 
         complex(dp), allocatable :: z(:,:)
 
-        call assert_square(Id, "Id")
+        call assert_square(cE, "cE")
         call assert_square(h_i, "h_i")
-        call assert_square(U_couple, "U_couple")
         call assert_square(G_NN, "G_NN")
 
-        z = cmplx(E, eta, kind=dp) * Id - h_i - matmul3(conjg(transpose(U_couple)), G_NN, U_couple)
+        z = cE - h_i - matmul3(conjg(transpose(U_couple)), G_NN, U_couple)
         call invert(z)
 
         G_NN = z
         G_0N = matmul3(G_0N, U_couple, G_NN)
     end subroutine rgf_step
 
-    subroutine rgf_last_step(G_NN, G_0N, g_R, U_NNp1, G_0Np1)
-        complex(dp), intent(in) :: G_NN(:,:), G_0N(:,:), g_R(:,:), U_NNp1(:,:)
+    subroutine rgf_last_step(g_R, U_NNp1, G_NN, G_0N, G_0Np1)
+        complex(dp), intent(in) :: g_R(:,:), G_NN(:,:), G_0N(:,:), U_NNp1(:,:)
         complex(dp), intent(out) :: G_0Np1(:,:)
 
         complex(dp), allocatable :: gR_inv(:,:), z_2(:,:)
@@ -49,10 +56,10 @@ module transmittance
         gR_inv = g_R
         call invert(gR_inv)
 
-        z_2 = gR_inv - matmul(conjg(transpose(U_NNp1)), matmul(G_NN, U_NNp1))
+        z_2 = gR_inv - matmul3(conjg(transpose(U_NNp1)), G_NN, U_NNp1)
         call invert(z_2)
 
-        G_0Np1 = matmul(G_0N, matmul(U_NNp1, z_2))
+        G_0Np1 = matmul3(G_0N, U_NNp1, z_2)
     end subroutine rgf_last_step
 
 end module transmittance

@@ -6,6 +6,7 @@ module lead_green_function
 
     private
     public :: surface_gf_1d
+    public :: surface_self_energy_left, surface_self_energy_right
 
     contains
 
@@ -34,16 +35,16 @@ module lead_green_function
         complex(dp), intent(in)  :: surf_gf_l(:, :), u_left(:, :)
         complex(dp), intent(out) :: sigma_left(:, :)
 
-        complex(dp) :: u_left_dagger(size(u_left, 2), size(u_left, 1))
+        complex(dp), allocatable :: u_left_dagger(:, :)
+
+        u_left_dagger = conjg( transpose( u_left ) )
 
         call assert_square(surf_gf_l, "surf_gf_l")
-        call assert_matmul_compatibility(surf_gf_l, u_left_dagger, "surf_gf_l", "u_left_dagger")
-        call assert_matmul_compatibility(u_left, surf_gf_l, "u_left", "surf_gf_l")
-        call assert_same_shape(surf_gf_l, sigma_left, "surf_gf_l", "sigma_left")
+        ! call assert_same_shape(surf_gf_l, sigma_left, matmul( G_NN, U_NNp1 ) )
+        ! call invert(z_2)
+        ! G_0Np1 = matmul( G_0N, matmul( U_NNp1, z_2 ) ) "surf_gf_l", "sigma_left")
 
-        u_left_dagger = conjg(transpose(u_left))
-
-        sigma_left = matmul(u_left, matmul(surf_gf_l, u_left_dagger))
+        sigma_left = matmul3(u_left, surf_gf_l, u_left_dagger)
 
     end subroutine surface_self_energy_left
 
@@ -51,16 +52,14 @@ module lead_green_function
         complex(dp), intent(in)  :: surf_gf_r(:, :), u_right(:, :)
         complex(dp), intent(out) :: sigma_right(:, :)
 
-        complex(dp) :: u_right_dagger(size(u_right, 2), size(u_right, 1))
+        complex(dp), allocatable :: u_right_dagger(:, :)
 
-        call assert_same_shape(surf_gf_r, sigma_right, "surf_gf_r", "sigma_right")
+        u_right_dagger = conjg( transpose( u_right ) )
+
         call assert_square(surf_gf_r, "surf_gf_r")
-        call assert_matmul_compatibility(surf_gf_r, u_right_dagger, "surf_gf_r", "u_left_dagger")
-        call assert_matmul_compatibility(u_right, surf_gf_r, "u_left", "surf_gf_r")
+        call assert_same_shape(surf_gf_r, sigma_right, "surf_gf_r", "sigma_right")
 
-        u_right_dagger = conjg(transpose(u_right))
-
-        sigma_right = matmul(u_right_dagger, matmul(surf_gf_r, u_right))
+        sigma_right = matmul3(u_right_dagger, surf_gf_r, u_right)
 
     end subroutine surface_self_energy_right
 

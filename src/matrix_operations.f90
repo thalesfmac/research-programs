@@ -1,11 +1,12 @@
 module matrix_operations
     use :: precision, only : dp
+    use :: lapack_blas, only : gemm
     implicit none
 
     private
     public :: identity_matrix, trace
     public :: assert_square, assert_matmul_compatibility, assert_same_shape
-    public :: matmul3, matmul4
+    ! public :: matmul3, matmul4
 
     interface assert_square
         module procedure assert_square_cdp
@@ -112,6 +113,23 @@ module matrix_operations
         end if
     end subroutine assert_same_shape_rdp
 
+    subroutine op_shape(X, trans, nrow, ncol)
+        complex(dp), intent(in) :: X(:,:)
+        character(len=1), intent(in) :: trans
+        integer, intent(out) :: nrow, ncol
+
+        select case (trans)
+          case ('N','n')
+            nrow = size(X,1)
+            ncol = size(X,2)
+          case ('T','t','C','c')
+            nrow = size(X,2)
+            ncol = size(X,1)
+          case default
+            error stop "op_shape: trans deve ser 'N', 'T' ou 'C'"
+        end select
+    end subroutine op_shape
+
     subroutine identity_matrix(A)
         complex(dp), intent(out) :: A(:,:)
         integer :: lo, hi, i
@@ -141,28 +159,45 @@ module matrix_operations
         end do
     end function trace
 
-    function matmul3(A, B, C) result(D)
-        complex(dp), intent(in) :: A(:, :), B(:, :), C(:, :)
-        complex(dp), allocatable :: D(:, :), tmp(:, :)
+    subroutine matmul3(A, B, C, D, transa, transb, transc)
+        complex(dp), intent(in)  :: A(:, :), B(:, :), C(:, :)
+        complex(dp), intent(out) :: D(:, :)
+        character(len=1), intent(in), optional :: transa, transb, transc
 
-        call assert_matmul_compatibility(A, B, "A", "B")
-        call assert_matmul_compatibility(B, C, "B", "C")
+        character(len=1) :: ta, tb, tc
+        complex(dp), allocatable :: tmp(:, :)
+
+        ta = 'N'; if (present(transa)) ta = transa
+        tb = 'N'; if (present(transb)) tb = transb
+        tc = 'N'; if (present(transc)) tb = transc
+
+        ! call assert_matmul_compatibility(A, B, "A", "B")
+        ! call assert_matmul_compatibility(B, C, "B", "C")
+
+        if (size(D,1) /= size(A,1) .or. size(D,2) /= size(C,2)) then
+            error stop "matmul3: D has incompatible shape"
+        end if
 
         tmp = matmul(B, C)
         D   = matmul(A, tmp)
-    end function matmul3
+    end subroutine matmul3
 
-    function matmul4(A, B, C, D) result(E)
-        complex(dp), intent(in) :: A(:, :), B(:, :), C(:, :), D(:, :)
-        complex(dp), allocatable :: E(:, :), tmp1(:, :), tmp2(:, :)
+    ! subroutine matmul4(A, B, C, D, E)
+    !     complex(dp), intent(in)  :: A(:, :), B(:, :), C(:, :), D(:, :)
+    !     complex(dp), intent(out) :: E(:, :)
+    !     complex(dp), allocatable :: tmp1(:, :), tmp2(:, :)
 
-        call assert_matmul_compatibility(A, B, "A", "B")
-        call assert_matmul_compatibility(B, C, "B", "C")
-        call assert_matmul_compatibility(C, D, "C", "D")
+    !     call assert_matmul_compatibility(A, B, "A", "B")
+    !     call assert_matmul_compatibility(B, C, "B", "C")
+    !     call assert_matmul_compatibility(C, D, "C", "D")
 
-        tmp1 = matmul(A, B)
-        tmp2 = matmul(C, D)
-        E    = matmul(tmp1, tmp2)
-    end function matmul4
+    !     if (size(E,1) /= size(A,1) .or. size(E,2) /= size(D,2)) then
+    !         error stop "matmul4: E has incompatible shape"
+    !     end if
+
+    !     tmp1 = matmul(A, B)
+    !     tmp2 = matmul(C, D)
+    !     E    = matmul(tmp1, tmp2)
+    ! end subroutine matmul4
 
 end module matrix_operations
