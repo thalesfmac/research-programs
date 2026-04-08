@@ -1,10 +1,9 @@
 module lapack_blas
     use, intrinsic :: iso_fortran_env, only: real64
     implicit none
-    private
 
-    ! Wrappers “seguros”
-    public :: diagonalize, gemm, invert
+    private
+    public :: diagonalize, invert, matmul2
 
     interface
         subroutine zheev(jobz, uplo, n, a, lda, w, work, lwork, rwork, info)
@@ -176,5 +175,62 @@ module lapack_blas
         deallocate(work, ipiv)
     end subroutine invert
 
+    subroutine op_shape(X, trans, nrow, ncol)
+        complex(real64), intent(in) :: X(:,:)
+        character(len=1), intent(in) :: trans
+        integer, intent(out) :: nrow, ncol
+
+        select case (trans)
+          case ('N','n')
+            nrow = size(X,1)
+            ncol = size(X,2)
+          case ('T','t','C','c')
+            nrow = size(X,2)
+            ncol = size(X,1)
+          case default
+            error stop "op_shape: must be 'N', 'T' or 'C'"
+        end select
+    end subroutine op_shape
+
+    subroutine matmul2(A, B, C, transa, transb)
+        complex(real64), intent(in), contiguous :: A(:,:), B(:,:)
+        complex(real64), intent(out), allocatable :: C(:,:)
+        character(len=1), intent(in), optional :: transa, transb
+
+        integer a_rows, a_cols, b_rows, b_cols
+        character(len=1) :: ta, tb
+        integer :: lda, ldb, ldc
+
+        ta = 'N'; if (present(transa)) ta = transa
+        tb = 'N'; if (present(transb)) tb = transb
+
+        call op_shape(A, transa, a_rows, a_cols)
+        call op_shape(B, transb, b_rows, b_cols)
+
+        if (a_cols /= b_rows) error stop "matmul2: A and B have imcompatible dimensions"
+
+        allocate( C(a_rows, b_cols) )
+        C = (0.0_real64, 0.0_real64)
+
+        lda = size(A,1)
+        ldb = size(B,1)
+        ldc = size(C,1)
+
+        call zgemm( &
+            ta, &
+            tb, &
+            a_rows,  &
+            b_cols,  &
+            a_cols,  &
+            (1.0_real64, 0.0_real64), &
+            A, &
+            lda, &
+            B, &
+            ldb, &
+            (0.0_real64, 0.0_real64), &
+            C, &
+            ldc &
+            )
+    end subroutine matmul2
 
 end module lapack_blas

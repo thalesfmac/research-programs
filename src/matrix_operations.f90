@@ -113,23 +113,6 @@ module matrix_operations
         end if
     end subroutine assert_same_shape_rdp
 
-    subroutine op_shape(X, trans, nrow, ncol)
-        complex(dp), intent(in) :: X(:,:)
-        character(len=1), intent(in) :: trans
-        integer, intent(out) :: nrow, ncol
-
-        select case (trans)
-          case ('N','n')
-            nrow = size(X,1)
-            ncol = size(X,2)
-          case ('T','t','C','c')
-            nrow = size(X,2)
-            ncol = size(X,1)
-          case default
-            error stop "op_shape: trans deve ser 'N', 'T' ou 'C'"
-        end select
-    end subroutine op_shape
-
     subroutine identity_matrix(A)
         complex(dp), intent(out) :: A(:,:)
         integer :: lo, hi, i
