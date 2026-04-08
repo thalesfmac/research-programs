@@ -1,10 +1,9 @@
 module disordered_systems
     use :: precision, only : dp
     use :: constants, only : PI
-    use :: lapack_blas
-    use :: matrix_operations
-    use :: lead_green_function
-    use :: peierls_operator
+    use :: matrix_operations, only : identity_matrix, assert_square
+    use :: lead_green_function, only : surface_gf_1d, surface_self_energy_left, surface_self_energy_right, broadening
+    use :: peierls_operator, only : peierls_exp
     use :: transmittance
     implicit none
 
@@ -78,16 +77,26 @@ module disordered_systems
         complex(dp) :: U_01(0:0, 0:Nph)
         complex(dp) :: U_NNp1(0:Nph, 0:0)
         complex(dp), dimension(0:0, 0:0) :: g_L, g_R, gR_inv, z_2, G_0Np1
+        complex(dp), dimension(0:0, 0:0) :: u_left, u_right
 
-        complex(dp), dimension(0:0, 0:0) :: sigma_L, sigma_R
-        real(dp), dimension(0:0, 0:0) :: gamma_L, gamma_R
+        complex(dp), dimension(:, :), allocatable :: sigma_L, sigma_R, gamma_L, gamma_R
+        ! real(dp), dimension(0:0, 0:0) :: gamma_L, gamma_R
 
         call identity_matrix(cE)
         cE = cmplx(E, eta, kind=dp) * cE
 
         g_L(0, 0) = surface_gf_1d(E, tlead, muL)
         g_R(0, 0) = surface_gf_1d(E, tlead, muR)
-        gR_inv = g_R; call invert(gR_inv)
+
+        u_left(0, 0) = cmplx(-tlead, kind=dp)
+        u_right(0, 0) = cmplx(-tlead, kind=dp)
+        ! gR_inv = g_R; call invert(gR_inv)
+
+        call surface_self_energy_left(g_L, u_left, sigma_L)
+        call surface_self_energy_right(g_R, u_right, sigma_R)
+
+        call broadening(sigma_L, gamma_L)
+        call broadening(sigma_R, gamma_R)
 
         U_01 = (0.0_dp, 0.0_dp)
         U_01(0,0) = cmplx(-tcL, kind=dp)
@@ -99,7 +108,7 @@ module disordered_systems
 
         ! Caso especial: cadeia de um único sítio
         if (Lx == 1) then
-            error stop "rgf_transmission: Lx = 1"
+            error stop "cavaa_rgf_transmission: Lx = 1"
         end if
 
         ! Primeiro sítio
@@ -127,17 +136,19 @@ module disordered_systems
 
         call rgf_last_step(g_R, U_NNp1, G_NN, G_0N, G_0Np1)
 
-        sigma_L = cmplx(tlead * tlead, kind=dp) * g_L
-        sigma_R = cmplx(tlead * tlead, kind=dp) * g_R
+        ! sigma_L = cmplx(tlead * tlead, kind=dp) * g_L
+        ! sigma_R = cmplx(tlead * tlead, kind=dp) * g_R
 
         ! call surface_self_energy_left(g_L)
 
-        gamma_L = - 2.0_dp * aimag(sigma_L)
-        gamma_R = - 2.0_dp * aimag(sigma_R)
+        ! gamma_L = - 2.0_dp * aimag(sigma_L)
+        ! gamma_R = - 2.0_dp * aimag(sigma_R)
 
         ! Tmat = abs( matmul( matmul(gamma_L, G_0Np1), matmul(gamma_R, conjg(transpose(G_0Np1))) ) )
         ! TT = real(Tmat(0,0), kind=dp)
-        TT = gamma_L(0,0) * gamma_R(0,0) * abs(G_0Np1(0,0))**2
+        ! TT = gamma_L(0,0) * gamma_R(0,0) * abs(G_0Np1(0,0))**2
+
+        TT = caroli_transmission(G_0Np1, gamma_L, gamma_R)
     end function cavaa_rgf_transmission
 
 end module disordered_systems
