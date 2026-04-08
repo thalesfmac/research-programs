@@ -7,6 +7,7 @@ module lead_green_function
     private
     public :: surface_gf_1d
     public :: surface_self_energy_left, surface_self_energy_right
+    public :: broadening
 
     contains
 
