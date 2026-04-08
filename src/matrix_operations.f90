@@ -1,12 +1,10 @@
 module matrix_operations
     use :: precision, only : dp
-    use :: lapack_blas, only : gemm
     implicit none
 
     private
     public :: identity_matrix, trace
     public :: assert_square, assert_matmul_compatibility, assert_same_shape
-    ! public :: matmul3, matmul4
 
     interface assert_square
         module procedure assert_square_cdp
@@ -141,46 +139,5 @@ module matrix_operations
             retval = retval + A(i, i)
         end do
     end function trace
-
-    subroutine matmul3(A, B, C, D, transa, transb, transc)
-        complex(dp), intent(in)  :: A(:, :), B(:, :), C(:, :)
-        complex(dp), intent(out) :: D(:, :)
-        character(len=1), intent(in), optional :: transa, transb, transc
-
-        character(len=1) :: ta, tb, tc
-        complex(dp), allocatable :: tmp(:, :)
-
-        ta = 'N'; if (present(transa)) ta = transa
-        tb = 'N'; if (present(transb)) tb = transb
-        tc = 'N'; if (present(transc)) tb = transc
-
-        ! call assert_matmul_compatibility(A, B, "A", "B")
-        ! call assert_matmul_compatibility(B, C, "B", "C")
-
-        if (size(D,1) /= size(A,1) .or. size(D,2) /= size(C,2)) then
-            error stop "matmul3: D has incompatible shape"
-        end if
-
-        tmp = matmul(B, C)
-        D   = matmul(A, tmp)
-    end subroutine matmul3
-
-    ! subroutine matmul4(A, B, C, D, E)
-    !     complex(dp), intent(in)  :: A(:, :), B(:, :), C(:, :), D(:, :)
-    !     complex(dp), intent(out) :: E(:, :)
-    !     complex(dp), allocatable :: tmp1(:, :), tmp2(:, :)
-
-    !     call assert_matmul_compatibility(A, B, "A", "B")
-    !     call assert_matmul_compatibility(B, C, "B", "C")
-    !     call assert_matmul_compatibility(C, D, "C", "D")
-
-    !     if (size(E,1) /= size(A,1) .or. size(E,2) /= size(D,2)) then
-    !         error stop "matmul4: E has incompatible shape"
-    !     end if
-
-    !     tmp1 = matmul(A, B)
-    !     tmp2 = matmul(C, D)
-    !     E    = matmul(tmp1, tmp2)
-    ! end subroutine matmul4
 
 end module matrix_operations
