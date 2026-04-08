@@ -1,7 +1,7 @@
 module lead_green_function
     use :: precision, only : dp
     use :: constants, only : CI
-    use :: matrix_operations
+    use :: lapack_blas, only : matmul2
     implicit none
 
     private
@@ -33,41 +33,29 @@ module lead_green_function
 
     subroutine surface_self_energy_left(surf_gf_l, u_left, sigma_left)
         complex(dp), intent(in)  :: surf_gf_l(:, :), u_left(:, :)
-        complex(dp), intent(out) :: sigma_left(:, :)
+        complex(dp), intent(out), allocatable :: sigma_left(:, :)
 
-        complex(dp), allocatable :: u_left_dagger(:, :)
+        complex(dp), allocatable :: tmp(:,:)
 
-        u_left_dagger = conjg( transpose( u_left ) )
-
-        call assert_square(surf_gf_l, "surf_gf_l")
-        ! call assert_same_shape(surf_gf_l, sigma_left, matmul( G_NN, U_NNp1 ) )
-        ! call invert(z_2)
-        ! G_0Np1 = matmul( G_0N, matmul( U_NNp1, z_2 ) ) "surf_gf_l", "sigma_left")
-
-        sigma_left = matmul3(u_left, surf_gf_l, u_left_dagger)
-
+        call matmul2(surf_gf_l, u_left, tmp, transb="C")
+        call matmul2(u_left, tmp, sigma_left)
     end subroutine surface_self_energy_left
 
     subroutine surface_self_energy_right(surf_gf_r, u_right, sigma_right)
         complex(dp), intent(in)  :: surf_gf_r(:, :), u_right(:, :)
-        complex(dp), intent(out) :: sigma_right(:, :)
+        complex(dp), intent(out), allocatable :: sigma_right(:, :)
 
-        complex(dp), allocatable :: u_right_dagger(:, :)
+        complex(dp), allocatable :: tmp(:,:)
 
-        u_right_dagger = conjg( transpose( u_right ) )
-
-        call assert_square(surf_gf_r, "surf_gf_r")
-        call assert_same_shape(surf_gf_r, sigma_right, "surf_gf_r", "sigma_right")
-
-        sigma_right = matmul3(u_right_dagger, surf_gf_r, u_right)
-
+        call matmul2(surf_gf_r, u_right, tmp)
+        call matmul2(u_right, tmp, sigma_right, transa="C")
     end subroutine surface_self_energy_right
 
     subroutine broadening(sigma, gam)
         complex(dp), intent(in) :: sigma(:, :)
-        complex(dp), intent(out) :: gam(:, :)
+        complex(dp), intent(out), allocatable :: gam(:, :)
 
-        call assert_same_shape(sigma, gam, "sigma", "gam")
+        if (size(sigma, 1) /= size(sigma, 2)) error stop "broadening: sigma must be square"
 
         gam = CI * (sigma - conjg( transpose( sigma ) ))
     end subroutine broadening
