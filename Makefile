@@ -13,7 +13,7 @@ MOD_DIR := build/mod
 BIN_DIR := build/bin
 
 # Flags
-FFLAGS := -O2 -Wall -Wextra -J$(MOD_DIR) -I$(MOD_DIR)
+FFLAGS := -g -fcheck=all -fbacktrace -Og -Wall -Wextra -J$(MOD_DIR) -I$(MOD_DIR)
 LDFLAGS :=
 # LDLIBS := -llapack -lblas -lhdf5_fortran -lhdf5
 LDLIBS := -llapack -lblas
