@@ -194,7 +194,7 @@ module lapack_blas
 
     subroutine matmul2(A, B, C, transa, transb)
         complex(real64), intent(in), contiguous :: A(:,:), B(:,:)
-        complex(real64), intent(out), allocatable :: C(:,:)
+        complex(real64), intent(out), contiguous :: C(:,:)
         character(len=1), intent(in), optional :: transa, transb
 
         integer a_rows, a_cols, b_rows, b_cols
@@ -208,8 +208,10 @@ module lapack_blas
         call op_shape(B, transb, b_rows, b_cols)
 
         if (a_cols /= b_rows) error stop "matmul2: A and B have imcompatible dimensions"
+        if (size(C, 1) /= a_rows .or. size(C, 2) /= b_cols) then
+            error stop "matmul2: C has incompatible dimensions for the result"
+        end if
 
-        allocate( C(a_rows, b_cols) )
         C = (0.0_real64, 0.0_real64)
 
         lda = size(A,1)

@@ -79,7 +79,7 @@ module disordered_systems
         complex(dp), dimension(0:0, 0:0) :: g_L, g_R, G_0Np1
         complex(dp), dimension(0:0, 0:0) :: u_left, u_right
 
-        complex(dp), dimension(:, :), allocatable :: sigma_L, sigma_R, gamma_L, gamma_R
+        complex(dp), dimension(0:0, 0:0) :: sigma_L, sigma_R, gamma_L, gamma_R
         ! real(dp), dimension(0:0, 0:0) :: gamma_L, gamma_R
 
         call identity_matrix(cE)

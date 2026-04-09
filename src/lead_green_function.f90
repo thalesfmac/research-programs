@@ -34,9 +34,11 @@ module lead_green_function
 
     subroutine surface_self_energy_left(surf_gf_l, u_left, sigma_left)
         complex(dp), intent(in)  :: surf_gf_l(:, :), u_left(:, :)
-        complex(dp), intent(out), allocatable :: sigma_left(:, :)
+        complex(dp), intent(out) :: sigma_left(:, :)
 
         complex(dp), allocatable :: tmp(:,:)
+
+        allocate( tmp(size(surf_gf_l, 1), size(u_left, 1)) )
 
         call matmul2(surf_gf_l, u_left, tmp, transb="C")
         call matmul2(u_left, tmp, sigma_left)
@@ -44,9 +46,11 @@ module lead_green_function
 
     subroutine surface_self_energy_right(surf_gf_r, u_right, sigma_right)
         complex(dp), intent(in)  :: surf_gf_r(:, :), u_right(:, :)
-        complex(dp), intent(out), allocatable :: sigma_right(:, :)
+        complex(dp), intent(out) :: sigma_right(:, :)
 
         complex(dp), allocatable :: tmp(:,:)
+
+        allocate( tmp(size(surf_gf_r, 1), size(u_right, 2)) )
 
         call matmul2(surf_gf_r, u_right, tmp)
         call matmul2(u_right, tmp, sigma_right, transa="C")
@@ -54,9 +58,12 @@ module lead_green_function
 
     subroutine broadening(sigma, gam)
         complex(dp), intent(in) :: sigma(:, :)
-        complex(dp), intent(out), allocatable :: gam(:, :)
+        complex(dp), intent(out) :: gam(:, :)
 
-        if (size(sigma, 1) /= size(sigma, 2)) error stop "broadening: sigma must be square"
+        ! if (size(sigma, 1) /= size(sigma, 2)) error stop "broadening: sigma must be square"
+        if (size(gam, 1) /= size(sigma, 1) .or. size(gam, 2) /= size(sigma, 2)) then
+            error stop "broadening: gam has incompatible dimensions with sigma"
+        end if
 
         gam = CI * (sigma - conjg( transpose( sigma ) ))
     end subroutine broadening
