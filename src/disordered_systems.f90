@@ -4,7 +4,7 @@ module disordered_systems
     use :: matrix_operations, only : identity_matrix, assert_square
     use :: lead_green_function, only : surface_gf_1d, surface_self_energy_left, surface_self_energy_right, broadening
     use :: peierls_operator, only : peierls_exp
-    use :: transmittance
+    use :: transmittance, only : caroli_transmission, rgf_step, rgf_last_step
     implicit none
 
     private
@@ -72,11 +72,11 @@ module disordered_systems
         real(dp) :: TT
 
         integer :: i
-        complex(dp), dimension(0:Nph, 0:Nph) :: cE, h_i, U, z, G_NN
+        complex(dp), dimension(0:Nph, 0:Nph) :: cE, h_i, U, G_NN
         complex(dp) :: G_0N(0:0, 0:Nph)
         complex(dp) :: U_01(0:0, 0:Nph)
         complex(dp) :: U_NNp1(0:Nph, 0:0)
-        complex(dp), dimension(0:0, 0:0) :: g_L, g_R, gR_inv, z_2, G_0Np1
+        complex(dp), dimension(0:0, 0:0) :: g_L, g_R, G_0Np1
         complex(dp), dimension(0:0, 0:0) :: u_left, u_right
 
         complex(dp), dimension(:, :), allocatable :: sigma_L, sigma_R, gamma_L, gamma_R
