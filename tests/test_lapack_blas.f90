@@ -9,7 +9,7 @@ program test_lapack_blas
     real(dp) :: tol = 1.0e-12_dp
 
     ! --- Test Inversion ---
-    allocate(A(2,2), I_ref(2,2))
+    allocate(A(2,2), I_ref(2,2), C(2,2))
     call identity_matrix(I_ref)
     A(1,1) = (2.0_dp, 0.0_dp); A(1,2) = (0.0_dp, 1.0_dp)
     A(2,1) = (0.0_dp, -1.0_dp); A(2,2) = (2.0_dp, 0.0_dp)
