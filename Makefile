@@ -11,6 +11,7 @@ APP_DIR := app
 OBJ_DIR := build/obj
 MOD_DIR := build/mod
 BIN_DIR := build/bin
+TEST_DIR := tests
 
 # Flags
 FFLAGS := -g -fcheck=all -fbacktrace -Og -Wall -Wextra -J$(MOD_DIR) -I$(MOD_DIR)
@@ -36,12 +37,24 @@ SRC_FILES := \
 # Objetos
 OBJ_FILES := $(patsubst %.f90,$(OBJ_DIR)/%.o,$(notdir $(SRC_FILES)))
 
+TEST_SRC := $(wildcard $(TEST_DIR)/*.f90)
+TEST_EXE := $(patsubst $(TEST_DIR)/%.f90,$(BIN_DIR)/%.test,$(TEST_SRC))
+
 # Regra principal
 all: dirs $(BIN_DIR)/$(TARGET)
+
+test: $(TEST_EXE)
+	@for ex in $(TEST_EXE); do \
+		echo "Running $$ex..."; \
+		./$$ex; \
+	done
 
 # Linkedição
 $(BIN_DIR)/$(TARGET): $(OBJ_FILES)
 	$(FC) $(FFLAGS) $(OBJ_FILES) -o $@ $(LDFLAGS) $(LDLIBS)
+
+$(BIN_DIR)/%.test: $(OBJ_DIR)/$(TEST_DIR)/%.o $(filter-out $(OBJ_DIR)/cavityaa_rgf.o, $(OBJ_FILES))
+	$(FC) $(FFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
 # Compilação dos arquivos de src
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.f90 | dirs
@@ -51,12 +64,15 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.f90 | dirs
 $(OBJ_DIR)/%.o: $(APP_DIR)/%.f90 | dirs
 	$(FC) $(FFLAGS) -c $< -o $@
 
+$(OBJ_DIR)/$(TEST_DIR)/%.o: $(TEST_DIR)/%.f90 | dirs
+	$(FC) $(FFLAGS) -c $< -o $@
+
 # Criar diretórios
 dirs:
-	mkdir -p $(OBJ_DIR) $(MOD_DIR) $(BIN_DIR)
+	mkdir -p $(OBJ_DIR) $(MOD_DIR) $(BIN_DIR) $(OBJ_DIR)/$(TEST_DIR)
 
 # Limpeza
 clean:
 	rm -rf build
 
-.PHONY: all clean dirs
+.PHONY: all clean dirs test
