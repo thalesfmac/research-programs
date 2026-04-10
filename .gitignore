@@ -36,6 +36,7 @@
 *.exe
 *.out
 *.app
+*.test
 
 # debug information files
 *.dwo
@@ -45,4 +46,4 @@
 *.dat
 *.bin
 *.txt
-.vscode/settings.json
+.vscode/**
