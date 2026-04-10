@@ -27,6 +27,55 @@ module transmittance
         T = real(trace(tmp3), kind=dp)
     end function caroli_transmission
 
+    subroutine rgf_first_step(cE, h_i, U_couple, G_NN, G_0N)
+        complex(dp), intent(in) :: cE(:, :), h_i(:,:), U_couple(:,:)
+        complex(dp), intent(out) :: G_NN(:,:), G_0N(:,:)
+
+        complex(dp), allocatable :: tmp1(:,:), tmp2(:,:), z(:,:)
+        complex(dp), allocatable :: tmp3(:,:), tmp4(:,:)
+
+        if (size(cE, 1) /= size(h_i, 1) .or. size(cE, 2) /= size(h_i, 2)) then
+            error stop "rgf_step: cE has incompatible dimensions with h_i"
+        end if
+
+        allocate( tmp1(size(G_NN, 1), size(U_couple, 2)) )
+        allocate( tmp2(size(U_couple, 2), size(tmp1, 2)) )
+        allocate( z(size(cE, 1), size(cE, 2)) )
+
+        write(*, *) shape(tmp1), "tmp1"
+        write(*, *) shape(G_NN), "G_NN"
+        write(*, *) shape(U_couple), "U_couple"
+
+        call matmul2(G_NN, U_couple, tmp1)
+
+        write(*, *) shape(tmp2), "tmp2"
+        call matmul2(U_couple, tmp1, tmp2, transa="C")
+
+        write(*, *) shape(cE), "cE"
+        write(*, *) shape(h_i), "h_i"
+
+        z = cE - h_i - tmp2
+        call invert(z)
+
+        allocate( tmp3(size(U_couple, 1), size(G_NN, 2)) )
+        allocate( tmp4(size(G_0N, 1), size(tmp3, 2)) )
+
+        write(*, *) shape(tmp3), "tmp3"
+        write(*, *) shape(U_couple), "U_couple"
+        write(*, *) shape(G_NN), "G_NN"
+
+        call matmul2(U_couple, G_NN, tmp3)
+
+        write(*, *) shape(tmp4), "tmp4"
+        write(*, *) shape(G_0N), "G_0N"
+        write(*, *) shape(tmp3), "tmp3"
+
+        call matmul2(G_0N, tmp3, tmp4)
+
+        G_NN = z
+        G_0N = tmp4
+    end subroutine rgf_first_step
+
     subroutine rgf_step(cE, h_i, U_couple, G_NN, G_0N)
         complex(dp), intent(in) :: cE(:, :), h_i(:,:), U_couple(:,:)
         complex(dp), intent(inout) :: G_NN(:,:), G_0N(:,:)
