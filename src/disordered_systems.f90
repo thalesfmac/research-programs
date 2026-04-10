@@ -117,7 +117,7 @@ module disordered_systems
         ! call invert(z)
         ! G_NN = z
         ! G_0N = matmul( g_L, matmul(U_01, G_NN) )
-        call rgf_step(cE, h_i, U_01, G_NN, G_0N)
+        call rgf_step(cE, h_i, U_01, g_L, G_0N)
 
         ! Sítios internos: 2, ..., Lx
         do i = 2, Lx
