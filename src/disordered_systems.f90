@@ -72,10 +72,10 @@ module disordered_systems
         real(dp) :: tt
 
         integer :: i
-        complex(dp), dimension(0:Nph, 0:Nph) :: cE, h_i, U, G_nn
-        complex(dp), dimension(0:0, 0:Nph) :: G_0n, U_01
-        complex(dp), dimension(0:Nph, 0:0) :: U_NNp1
-        complex(dp), dimension(0:0, 0:0) :: g_L, g_R, G_0Np1
+        complex(dp), dimension(0:Nph, 0:Nph) :: cE, h_n, U, G_nm1_nm1, G_n_n
+        complex(dp), dimension(0:0, 0:Nph) :: U_01, G_0_nm1, G_0_n
+        complex(dp), dimension(0:Nph, 0:0) :: U_N_Np1
+        complex(dp), dimension(0:0, 0:0) :: g_L, g_R, G_Np1_Np1, G_0_Np1
         complex(dp), dimension(0:0, 0:0) :: u_left, u_right
         complex(dp), dimension(0:0, 0:0) :: sigma_L, sigma_R, gamma_L, gamma_R
 
@@ -101,27 +101,29 @@ module disordered_systems
 
         U_01 = (0.0_dp, 0.0_dp)
         U_01(0,0) = cmplx(-tcL, kind=dp)
-        U_NNp1 = (0.0_dp, 0.0_dp)
-        U_NNp1(0,0) = cmplx(-tcR, kind=dp)
+        U_N_Np1 = (0.0_dp, 0.0_dp)
+        U_N_Np1(0,0) = cmplx(-tcR, kind=dp)
 
         call peierls_exp(U, g)
         U = cmplx(-t, kind=dp) * U
 
         ! First site
-        call cavaa_slice_hamiltonian(h_i, 1, V, beta, phi, omega)
-        call rgf_first_step(cE, h_i, U_01, g_L, G_nn, G_0n)
+        call cavaa_slice_hamiltonian(h_n, 1, V, beta, phi, omega)
+        call rgf_first_step(cE, h_n, U_01, g_L, G_nm1_nm1, G_0_nm1)
 
         ! Internal sites: 2, ..., Lx
         do i = 2, Lx
-            call cavaa_slice_hamiltonian(h_i, i, V, beta, phi, omega)
-            call rgf_step(cE, h_i, U, G_nn, G_0n)
+            call cavaa_slice_hamiltonian(h_n, i, V, beta, phi, omega)
+            call rgf_step(cE, h_n, U, G_nm1_nm1, G_0_nm1, G_n_n, G_0_n)
+            G_nm1_nm1 = G_n_n
+            G_0_nm1 = G_0_n
         end do
 
         ! Connect to the right lead
-        call rgf_last_step(g_R, U_NNp1, G_nn, G_0n, G_0Np1)
+        call rgf_last_step(g_R, U_N_Np1, G_n_n, G_0_n, G_Np1_Np1, G_0_Np1)
 
         ! Calculate the transmission probability
-        tt = caroli_transmission(G_0Np1, gamma_L, gamma_R)
+        tt = caroli_transmission(G_0_Np1, gamma_L, gamma_R)
     end function cavaa_rgf_transmission
 
 end module disordered_systems
