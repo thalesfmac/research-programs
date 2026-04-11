@@ -14,11 +14,9 @@ module lead_green_function
     function f(x) result(res)
         real(dp), intent(in) :: x
         complex(dp) :: res
-        ! real(dp), parameter :: ETA = 1.0e-12_dp
-        ! real(dp), parameter :: ETA = 0.0_dp
 
         if (abs(x) >= 2.0_dp) error stop "f: |x| must be < 2"
-        ! res = cmplx(x, kind=dp) - CI * sqrt(4.0_dp - x*x)
+
         res = cmplx(x, -sqrt(4.0_dp - x*x), kind=dp)
     end function f
 
