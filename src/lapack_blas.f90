@@ -3,7 +3,8 @@ module lapack_blas
     implicit none
 
     private
-    public :: diagonalize, invert, matmul2, matmul3
+    public :: diagonalize, invert
+    public :: matmul2, matmul3, matmul4
 
     interface
         subroutine zheev(jobz, uplo, n, a, lda, w, work, lwork, rwork, info)
@@ -265,5 +266,72 @@ module lapack_blas
         call matmul2(A, B, T, ta, tb)
         call matmul2(T, C, D, 'N', tc)
     end subroutine matmul3
+
+    subroutine matmul4(A, B, C, D, E, transa, transb, transc, transd)
+        use iso_fortran_env, only: real64
+        implicit none
+
+        complex(real64), intent(in),  contiguous :: A(:,:), B(:,:), C(:,:), D(:,:)
+        complex(real64), intent(out), contiguous :: E(:,:)
+        character(len=1), intent(in), optional   :: transa, transb, transc, transd
+
+        character(len=1) :: ta, tb, tc, td
+        integer :: a_rows, a_cols
+        integer :: b_rows, b_cols
+        integer :: c_rows, c_cols
+        integer :: d_rows, d_cols
+        complex(real64), allocatable :: T1(:,:), T2(:,:)
+
+        ta = 'N'; if (present(transa)) ta = transa
+        tb = 'N'; if (present(transb)) tb = transb
+        tc = 'N'; if (present(transc)) tc = transc
+        td = 'N'; if (present(transd)) td = transd
+
+        ! op(A) = (a_rows, a_cols)
+        call op_shape(A, ta, a_rows, a_cols)
+
+        ! op(B) = (b_rows, b_cols)
+        call op_shape(B, tb, b_rows, b_cols)
+
+        ! op(C) = (c_rows, c_cols)
+        call op_shape(C, tc, c_rows, c_cols)
+
+        ! op(D) = (d_rows, d_cols)
+        call op_shape(D, td, d_rows, d_cols)
+
+        ! Verificações de compatibilidade:
+        ! AB
+        if (a_cols /= b_rows) then
+            error stop "matmul4: op(A) and op(B) have incompatible dimensions"
+        end if
+
+        ! CD
+        if (c_cols /= d_rows) then
+            error stop "matmul4: op(C) and op(D) have incompatible dimensions"
+        end if
+
+        ! (AB)(CD)
+        if (b_cols /= c_rows) then
+            error stop "matmul4: op(A)op(B) and op(C)op(D) have incompatible dimensions"
+        end if
+
+        ! Shape final de E
+        if (size(E,1) /= a_rows .or. size(E,2) /= d_cols) then
+            error stop "matmul4: E has incompatible dimensions for the result"
+        end if
+
+        allocate(T1(a_rows, b_cols))
+        allocate(T2(c_rows, d_cols))
+
+        ! T1 = op(A) * op(B)
+        call matmul2(A, B, T1, ta, tb)
+
+        ! T2 = op(C) * op(D)
+        call matmul2(C, D, T2, tc, td)
+
+        ! E = T1 * T2
+        call matmul2(T1, T2, E, 'N', 'N')
+
+    end subroutine matmul4
 
 end module lapack_blas
