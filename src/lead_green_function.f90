@@ -1,7 +1,7 @@
 module lead_green_function
     use :: precision, only : dp
     use :: constants, only : CI
-    use :: lapack_blas, only : matmul2
+    use :: lapack_blas, only : matmul3
     implicit none
 
     private
@@ -36,24 +36,14 @@ module lead_green_function
         complex(dp), intent(in)  :: surf_gf_l(:, :), u_left(:, :)
         complex(dp), intent(out) :: sigma_left(:, :)
 
-        complex(dp), allocatable :: tmp(:,:)
-
-        allocate( tmp(size(surf_gf_l, 1), size(u_left, 1)) )
-
-        call matmul2(surf_gf_l, u_left, tmp, transb="C")
-        call matmul2(u_left, tmp, sigma_left)
+        call matmul3(u_left, surf_gf_l, u_left, sigma_left, transc="C")
     end subroutine surface_self_energy_left
 
     subroutine surface_self_energy_right(surf_gf_r, u_right, sigma_right)
         complex(dp), intent(in)  :: surf_gf_r(:, :), u_right(:, :)
         complex(dp), intent(out) :: sigma_right(:, :)
 
-        complex(dp), allocatable :: tmp(:,:)
-
-        allocate( tmp(size(surf_gf_r, 1), size(u_right, 2)) )
-
-        call matmul2(surf_gf_r, u_right, tmp)
-        call matmul2(u_right, tmp, sigma_right, transa="C")
+        call matmul3(u_right, surf_gf_r, u_right, sigma_right, transa="C")
     end subroutine surface_self_energy_right
 
     subroutine broadening(sigma, gam)
