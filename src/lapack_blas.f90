@@ -207,7 +207,7 @@ module lapack_blas
         call op_shape(A, ta, a_rows, a_cols)
         call op_shape(B, tb, b_rows, b_cols)
 
-        if (a_cols /= b_rows) error stop "matmul2: A and B have imcompatible dimensions"
+        if (a_cols /= b_rows) error stop "matmul2: op(A) and op(B) have imcompatible dimensions"
         if (size(C, 1) /= a_rows .or. size(C, 2) /= b_cols) then
             error stop "matmul2: C has incompatible dimensions for the result"
         end if
