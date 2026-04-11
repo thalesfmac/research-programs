@@ -12,7 +12,6 @@ program main
     real(dp) :: t, V
     real(dp) :: tcS, tcD, tlead, muS, muD
     real(dp) :: omega, g
-    ! logical :: use_golden
 
     real(dp), allocatable :: energies(:), phis(:), transmissions(:, :)
     real(dp) :: Emin, Emax
@@ -21,8 +20,6 @@ program main
     integer :: i, j
 
     call readInput()
-
-    ! if (use_golden) beta = INV_PHI
 
     call writeInput("parameters_" // trim(outname) // ".txt")
 
@@ -79,7 +76,6 @@ program main
         read(input_unit,*) t, V
         read(input_unit,*) omega, g
         read(input_unit,*) tcS, tcD, tlead, muS, muD
-        ! read(input_unit,*) use_golden
     end subroutine readInput
 
     subroutine writeInput(filename)
@@ -105,7 +101,6 @@ program main
         write(unit, *) "tlead=", tlead
         write(unit, *) "muS=", muS
         write(unit, *) "muD=", muD
-        ! write(unit, *) "use_golden=", use_golden
 
         close(unit)
     end subroutine writeInput
