@@ -79,7 +79,7 @@ module disordered_systems
         complex(dp), dimension(0:0, 0:0) :: u_left, u_right
         complex(dp), dimension(0:0, 0:0) :: sigma_L, sigma_R, gamma_L, gamma_R
 
-        ! Check if the system has more sites than 1
+        ! Check if the system has more than 1 site
         if (Lx <= 1) then
             error stop "cavaa_rgf_transmission: Lx must be greater than 1"
         end if
