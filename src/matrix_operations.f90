@@ -23,21 +23,43 @@ module matrix_operations
 
     contains
 
-    subroutine assert_square_cdp(A, name)
+    subroutine assert_square_cdp(A, name, caller)
         complex(dp), intent(in) :: A(:, :)
         character(len=*), intent(in) :: name
+        character(len=*), intent(in), optional :: caller
+
+        character(len=32) :: n1, n2
+        character(len=:), allocatable :: msg
 
         if (size(A,1) /= size(A,2)) then
-            error stop trim(name) // " must be square"
+            write(n1, '(I0)') size(A,1)
+            write(n2, '(I0)') size(A,2)
+
+            msg = trim(name) // " must be square, got shape (" // trim(n1) // "," // trim(n2) // ")"
+
+            if (present(caller)) msg = trim(caller) // ": " // msg
+
+            error stop msg
         end if
     end subroutine assert_square_cdp
 
-    subroutine assert_square_rdp(A, name)
+    subroutine assert_square_rdp(A, name, caller)
         real(dp), intent(in) :: A(:, :)
         character(len=*), intent(in) :: name
+        character(len=*), intent(in), optional :: caller
+
+        character(len=32) :: n1, n2
+        character(len=:), allocatable :: msg
 
         if (size(A,1) /= size(A,2)) then
-            error stop trim(name) // " must be square"
+            write(n1, '(I0)') size(A,1)
+            write(n2, '(I0)') size(A,2)
+
+            msg = trim(name) // " must be square, got shape (" // trim(n1) // "," // trim(n2) // ")"
+
+            if (present(caller)) msg = trim(caller) // ": " // msg
+
+            error stop msg
         end if
     end subroutine assert_square_rdp
 
