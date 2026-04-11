@@ -7,7 +7,7 @@ program main
     use disordered_systems
     implicit none
 
-    character(len=80) :: outname
+    character(len=256) :: outname
     integer :: Lx, Nph, seed, Ndisorder, NEpoints
     real(dp) :: t, V
     real(dp) :: tcS, tcD, tlead, muS, muD
