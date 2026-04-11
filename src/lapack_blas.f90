@@ -3,7 +3,7 @@ module lapack_blas
     implicit none
 
     private
-    public :: diagonalize, invert, matmul2
+    public :: diagonalize, invert, matmul2, matmul3
 
     interface
         subroutine zheev(jobz, uplo, n, a, lda, w, work, lwork, rwork, info)
@@ -234,5 +234,36 @@ module lapack_blas
             ldc &
             )
     end subroutine matmul2
+
+    subroutine matmul3(A, B, C, D, transa, transb, transc)
+        complex(real64), intent(in), contiguous :: A(:,:), B(:,:), C(:,:)
+        complex(real64), intent(out), contiguous :: D(:,:)
+        character(len=1), intent(in), optional :: transa, transb, transc
+
+        character(len=1) :: ta, tb, tc
+        integer :: a_rows, a_cols
+        integer :: b_rows, b_cols
+        integer :: c_rows, c_cols
+        complex(real64), allocatable :: T(:,:)
+
+        ta = 'N'; if (present(transa)) ta = transa
+        tb = 'N'; if (present(transb)) tb = transb
+        tc = 'N'; if (present(transc)) tc = transc
+
+        call op_shape(A, ta, a_rows, a_cols)
+        call op_shape(B, tb, b_rows, b_cols)
+        call op_shape(C, tc, c_rows, c_cols)
+
+        if (a_cols /= b_rows) error stop "matmul3: op(A) and op(B) have incompatible dimensions"
+        if (b_cols /= c_rows) error stop "matmul3: op(B) and op(C) have incompatible dimensions"
+        if (size(D,1) /= a_rows .or. size(D,2) /= c_cols) then
+            error stop "matmul3: D has incompatible dimensions for the result"
+        end if
+
+        allocate(T(a_rows, b_cols))
+
+        call matmul2(A, B, T, ta, tb)
+        call matmul2(T, C, D, 'N', tc)
+    end subroutine matmul3
 
 end module lapack_blas
