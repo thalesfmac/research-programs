@@ -23,7 +23,7 @@ LDLIBS := -llapack -lblas
 SRC_FILES := \
 	$(SRC_DIR)/precision.f90 \
 	$(SRC_DIR)/constants.f90 \
-	$(SRC_DIR)/lapack_blas.f90 \
+	$(SRC_DIR)/lapack_blas_interface.f90 \
 	$(SRC_DIR)/array_io.f90 \
 	$(SRC_DIR)/hdf5_io.f90 \
 	$(SRC_DIR)/rng_utils.f90 \
