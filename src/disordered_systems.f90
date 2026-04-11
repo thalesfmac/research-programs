@@ -4,7 +4,7 @@ module disordered_systems
     use :: matrix_operations, only : identity_matrix, assert_square
     use :: lead_green_function, only : surface_gf_1d, surface_self_energy_left, surface_self_energy_right, broadening
     use :: peierls_operator, only : peierls_exp
-    use :: transmittance, only : caroli_transmission, rgf_step, rgf_last_step
+    use :: transmittance, only : caroli_transmission, rgf_first_step, rgf_step, rgf_last_step
     implicit none
 
     private
@@ -65,22 +65,24 @@ module disordered_systems
         end do
     end subroutine cavaa_slice_hamiltonian
 
-    function cavaa_rgf_transmission(E, eta, Lx, Nph, t, V, beta, phi, g, omega, tcL, tcR, tlead, muL, muR) result(TT)
+    function cavaa_rgf_transmission(E, eta, Lx, Nph, t, V, beta, phi, g, omega, tcL, tcR, tlead, muL, muR) result(tt)
         integer, intent(in) :: Lx, Nph
         real(dp), intent(in) :: E, eta, t, V, beta, phi, g, omega
         real(dp), intent(in) :: tcL, tcR, tlead, muL, muR
-        real(dp) :: TT
+        real(dp) :: tt
 
         integer :: i
-        complex(dp), dimension(0:Nph, 0:Nph) :: cE, h_i, U, G_NN
-        complex(dp) :: G_0N(0:0, 0:Nph)
-        complex(dp) :: U_01(0:0, 0:Nph)
-        complex(dp) :: U_NNp1(0:Nph, 0:0)
+        complex(dp), dimension(0:Nph, 0:Nph) :: cE, h_i, U, G_nn
+        complex(dp), dimension(0:0, 0:Nph) :: G_0n, U_01
+        complex(dp), dimension(0:Nph, 0:0) :: U_NNp1
         complex(dp), dimension(0:0, 0:0) :: g_L, g_R, G_0Np1
         complex(dp), dimension(0:0, 0:0) :: u_left, u_right
-
         complex(dp), dimension(0:0, 0:0) :: sigma_L, sigma_R, gamma_L, gamma_R
-        ! real(dp), dimension(0:0, 0:0) :: gamma_L, gamma_R
+
+        ! Check if the system has more sites than 1
+        if (Lx <= 1) then
+            error stop "cavaa_rgf_transmission: Lx must be greater than 1"
+        end if
 
         call identity_matrix(cE)
         cE = cmplx(E, eta, kind=dp) * cE
@@ -90,7 +92,6 @@ module disordered_systems
 
         u_left(0, 0) = cmplx(-tlead, kind=dp)
         u_right(0, 0) = cmplx(-tlead, kind=dp)
-        ! gR_inv = g_R; call invert(gR_inv)
 
         call surface_self_energy_left(g_L, u_left, sigma_L)
         call surface_self_energy_right(g_R, u_right, sigma_R)
@@ -106,49 +107,21 @@ module disordered_systems
         call peierls_exp(U, g)
         U = cmplx(-t, kind=dp) * U
 
-        ! Caso especial: cadeia de um único sítio
-        if (Lx == 1) then
-            error stop "cavaa_rgf_transmission: Lx = 1"
-        end if
-
-        ! Primeiro sítio
+        ! First site
         call cavaa_slice_hamiltonian(h_i, 1, V, beta, phi, omega)
-        ! z = cmplx(E, eta, kind=dp) * Id - h_i - matmul( conjg(transpose(U_01)), matmul(g_L, U_01) )
-        ! call invert(z)
-        ! G_NN = z
-        ! G_0N = matmul( g_L, matmul(U_01, G_NN) )
-        call rgf_step(cE, h_i, U_01, g_L, G_0N)
+        call rgf_first_step(cE, h_i, U_01, g_L, G_nn, G_0n)
 
-        ! Sítios internos: 2, ..., Lx
+        ! Internal sites: 2, ..., Lx
         do i = 2, Lx
             call cavaa_slice_hamiltonian(h_i, i, V, beta, phi, omega)
-            ! z = cmplx(E, eta, kind=dp) * Id - h_i - matmul( conjg(transpose(U)), matmul( G_NN, U ) )
-            ! call invert(z)
-            ! G_NN = z
-            ! G_0N = matmul( G_0N, matmul( U, G_NN ) )
-            call rgf_step(cE, h_i, U, G_NN, G_0N)
+            call rgf_step(cE, h_i, U, G_nn, G_0n)
         end do
 
-        ! Lead R
-        ! z_2 = gR_inv - matmul( conjg(transpose(U_NNp1)), matmul( G_NN, U_NNp1 ) )
-        ! call invert(z_2)
-        ! G_0Np1 = matmul( G_0N, matmul( U_NNp1, z_2 ) )
+        ! Connect to the right lead
+        call rgf_last_step(g_R, U_NNp1, G_nn, G_0n, G_0Np1)
 
-        call rgf_last_step(g_R, U_NNp1, G_NN, G_0N, G_0Np1)
-
-        ! sigma_L = cmplx(tlead * tlead, kind=dp) * g_L
-        ! sigma_R = cmplx(tlead * tlead, kind=dp) * g_R
-
-        ! call surface_self_energy_left(g_L)
-
-        ! gamma_L = - 2.0_dp * aimag(sigma_L)
-        ! gamma_R = - 2.0_dp * aimag(sigma_R)
-
-        ! Tmat = abs( matmul( matmul(gamma_L, G_0Np1), matmul(gamma_R, conjg(transpose(G_0Np1))) ) )
-        ! TT = real(Tmat(0,0), kind=dp)
-        ! TT = gamma_L(0,0) * gamma_R(0,0) * abs(G_0Np1(0,0))**2
-
-        TT = caroli_transmission(G_0Np1, gamma_L, gamma_R)
+        ! Calculate the transmission probability
+        tt = caroli_transmission(G_0Np1, gamma_L, gamma_R)
     end function cavaa_rgf_transmission
 
 end module disordered_systems
