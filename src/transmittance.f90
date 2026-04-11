@@ -1,7 +1,6 @@
 module transmittance
     use :: precision, only : dp
-    use :: lapack_blas, only : invert, matmul3, matmul4
-    use :: matrix_operations, only : trace
+    use :: matrix_operations, only : trace, invert, matmul3, matmul4
     implicit none
 
     private

@@ -1,7 +1,7 @@
 module lead_green_function
     use :: precision, only : dp
     use :: constants, only : CI
-    use :: lapack_blas, only : matmul3
+    use :: matrix_operations, only : matmul3
     implicit none
 
     private

@@ -1,7 +1,6 @@
 program test_lapack_blas
     use precision, only : dp
-    use lapack_blas
-    use matrix_operations, only : identity_matrix
+    use matrix_operations, only : identity_matrix, invert, matmul2
     implicit none
 
     complex(dp), allocatable :: A(:,:), B(:,:), C(:,:), I_ref(:,:)

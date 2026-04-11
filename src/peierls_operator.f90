@@ -1,7 +1,7 @@
 module peierls_operator
     use :: precision, only : dp
     use :: constants, only : CI
-    use :: matrix_operations
+    use :: matrix_operations, only : assert_square
 
     implicit none
 
