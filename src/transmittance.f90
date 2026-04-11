@@ -11,7 +11,7 @@ module transmittance
     contains
 
     function caroli_transmission(gf, Gamma_L, Gamma_R) result(T)
-        complex(dp), dimension(:,:), intent(in) :: gf, Gamma_L, Gamma_R
+        complex(dp), dimension(:,:), intent(in), contiguous :: gf, Gamma_L, Gamma_R
         real(dp) :: T
 
         complex(dp), allocatable :: tmp(:,:)
@@ -22,8 +22,8 @@ module transmittance
     end function caroli_transmission
 
     subroutine rgf_first_step(cE, h_1, U_01, g_L, G_11, G_01)
-        complex(dp), dimension(:,:), intent(in) :: cE, h_1, U_01, g_L
-        complex(dp), dimension(:,:), intent(out) :: G_11, G_01
+        complex(dp), dimension(:,:), intent(in), contiguous :: cE, h_1, U_01, g_L
+        complex(dp), dimension(:,:), intent(out), contiguous :: G_11, G_01
 
         if (size(cE, 1) /= size(h_1, 1) .or. size(cE, 2) /= size(h_1, 2)) then
             error stop "rgf_first_step: cE has incompatible dimensions with h_i"
@@ -39,8 +39,8 @@ module transmittance
     end subroutine rgf_first_step
 
     subroutine rgf_step(cE, h_n, U_nm1_n, G_nm1_nm1, G_0_nm1, G_n_n, G_0_n)
-        complex(dp), dimension(:,:), intent(in) :: cE, h_n, U_nm1_n, G_nm1_nm1, G_0_nm1
-        complex(dp), intent(out) :: G_n_n(:,:), G_0_n(:,:)
+        complex(dp), dimension(:,:), intent(in), contiguous :: cE, h_n, U_nm1_n, G_nm1_nm1, G_0_nm1
+        complex(dp), intent(out), contiguous :: G_n_n(:,:), G_0_n(:,:)
 
         if (size(cE, 1) /= size(h_n, 1) .or. size(cE, 2) /= size(h_n, 2)) then
             error stop "rgf_step: cE has incompatible dimensions with h_i"
@@ -55,8 +55,8 @@ module transmittance
     end subroutine rgf_step
 
     subroutine rgf_last_step(g_R, U_N_Np1, G_N_N, G_0_N, G_Np1_Np1, G_0_Np1)
-        complex(dp), dimension(:,:), intent(in) :: g_R, G_N_N, G_0_N, U_N_Np1
-        complex(dp), dimension(:,:), intent(out) :: G_Np1_Np1, G_0_Np1
+        complex(dp), dimension(:,:), intent(in), contiguous :: g_R, G_N_N, G_0_N, U_N_Np1
+        complex(dp), dimension(:,:), intent(out), contiguous :: G_Np1_Np1, G_0_Np1
 
         complex(dp), dimension(:,:), allocatable :: g_R_inv
 

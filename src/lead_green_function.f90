@@ -31,22 +31,22 @@ module lead_green_function
     end function surface_gf_1d
 
     subroutine surface_self_energy_left(surf_gf_l, u_left, sigma_left)
-        complex(dp), intent(in)  :: surf_gf_l(:, :), u_left(:, :)
-        complex(dp), intent(out) :: sigma_left(:, :)
+        complex(dp), intent(in), contiguous  :: surf_gf_l(:, :), u_left(:, :)
+        complex(dp), intent(out), contiguous :: sigma_left(:, :)
 
         call matmul3(u_left, surf_gf_l, u_left, sigma_left, transc="C")
     end subroutine surface_self_energy_left
 
     subroutine surface_self_energy_right(surf_gf_r, u_right, sigma_right)
-        complex(dp), intent(in)  :: surf_gf_r(:, :), u_right(:, :)
-        complex(dp), intent(out) :: sigma_right(:, :)
+        complex(dp), intent(in), contiguous  :: surf_gf_r(:, :), u_right(:, :)
+        complex(dp), intent(out), contiguous :: sigma_right(:, :)
 
         call matmul3(u_right, surf_gf_r, u_right, sigma_right, transa="C")
     end subroutine surface_self_energy_right
 
     subroutine broadening(sigma, gam)
-        complex(dp), intent(in) :: sigma(:, :)
-        complex(dp), intent(out) :: gam(:, :)
+        complex(dp), intent(in), contiguous :: sigma(:, :)
+        complex(dp), intent(out), contiguous :: gam(:, :)
 
         ! if (size(sigma, 1) /= size(sigma, 2)) error stop "broadening: sigma must be square"
         if (size(gam, 1) /= size(sigma, 1) .or. size(gam, 2) /= size(sigma, 2)) then
