@@ -1,138 +1,75 @@
 module transmittance
     use :: precision, only : dp
-    use :: lapack_blas, only : invert, matmul2
+    use :: lapack_blas, only : invert, matmul3, matmul4
     use :: matrix_operations, only : trace
     implicit none
 
     private
     public :: caroli_transmission
-    public :: rgf_step, rgf_last_step
+    public :: rgf_first_step, rgf_step, rgf_last_step
 
     contains
 
     function caroli_transmission(gf, Gamma_L, Gamma_R) result(T)
-        complex(dp), intent(in) :: gf(:,:), Gamma_L(:,:), Gamma_R(:,:)
+        complex(dp), dimension(:,:), intent(in) :: gf, Gamma_L, Gamma_R
         real(dp) :: T
 
-        complex(dp), allocatable :: tmp1(:,:), tmp2(:,:), tmp3(:,:)
+        complex(dp), allocatable :: tmp(:,:)
 
-        allocate( tmp1(size(Gamma_L, 1), size(gf, 2)) )
-        allocate( tmp2(size(Gamma_R, 1), size(gf, 1)) )
-        allocate( tmp3(size(tmp1, 1), size(tmp2, 2)) )
-
-        call matmul2(Gamma_L, gf, tmp1)
-        call matmul2(Gamma_R, gf, tmp2, transb="C")
-        call matmul2(tmp1, tmp2, tmp3)
-
-        T = real(trace(tmp3), kind=dp)
+        allocate( tmp(size(Gamma_L, 1), size(gf, 1)) )
+        call matmul4(Gamma_L, gf, Gamma_R, gf, tmp, transd="C")
+        T = real(trace(tmp), kind=dp)
     end function caroli_transmission
 
-    subroutine rgf_first_step(cE, h_i, U_couple, G_NN, G_0N)
-        complex(dp), intent(in) :: cE(:, :), h_i(:,:), U_couple(:,:)
-        complex(dp), intent(out) :: G_NN(:,:), G_0N(:,:)
+    subroutine rgf_first_step(cE, h_1, U_01, g_L, G_11, G_01)
+        complex(dp), dimension(:,:), intent(in) :: cE, h_1, U_01, g_L
+        complex(dp), dimension(:,:), intent(out) :: G_11, G_01
 
-        complex(dp), allocatable :: tmp1(:,:), tmp2(:,:), z(:,:)
-        complex(dp), allocatable :: tmp3(:,:), tmp4(:,:)
-
-        if (size(cE, 1) /= size(h_i, 1) .or. size(cE, 2) /= size(h_i, 2)) then
-            error stop "rgf_step: cE has incompatible dimensions with h_i"
+        if (size(cE, 1) /= size(h_1, 1) .or. size(cE, 2) /= size(h_1, 2)) then
+            error stop "rgf_first_step: cE has incompatible dimensions with h_i"
         end if
 
-        allocate( tmp1(size(G_NN, 1), size(U_couple, 2)) )
-        allocate( tmp2(size(U_couple, 2), size(tmp1, 2)) )
-        allocate( z(size(cE, 1), size(cE, 2)) )
+        ! G_11 will be used to store the matrix product
+        call matmul3(U_01, g_L, U_01, G_11, transa="C")
 
-        write(*, *) shape(tmp1), "tmp1"
-        write(*, *) shape(G_NN), "G_NN"
-        write(*, *) shape(U_couple), "U_couple"
+        G_11 = cE - h_1 - G_11
+        call invert(G_11)
 
-        call matmul2(G_NN, U_couple, tmp1)
-
-        write(*, *) shape(tmp2), "tmp2"
-        call matmul2(U_couple, tmp1, tmp2, transa="C")
-
-        write(*, *) shape(cE), "cE"
-        write(*, *) shape(h_i), "h_i"
-
-        z = cE - h_i - tmp2
-        call invert(z)
-
-        allocate( tmp3(size(U_couple, 1), size(G_NN, 2)) )
-        allocate( tmp4(size(G_0N, 1), size(tmp3, 2)) )
-
-        write(*, *) shape(tmp3), "tmp3"
-        write(*, *) shape(U_couple), "U_couple"
-        write(*, *) shape(G_NN), "G_NN"
-
-        call matmul2(U_couple, G_NN, tmp3)
-
-        write(*, *) shape(tmp4), "tmp4"
-        write(*, *) shape(G_0N), "G_0N"
-        write(*, *) shape(tmp3), "tmp3"
-
-        call matmul2(G_0N, tmp3, tmp4)
-
-        G_NN = z
-        G_0N = tmp4
+        call matmul3(g_L, U_01, G_11, G_01)
     end subroutine rgf_first_step
 
-    subroutine rgf_step(cE, h_i, U_couple, G_NN, G_0N)
-        complex(dp), intent(in) :: cE(:, :), h_i(:,:), U_couple(:,:)
-        complex(dp), intent(inout) :: G_NN(:,:), G_0N(:,:)
+    subroutine rgf_step(cE, h_n, U_nm1_n, G_nm1_nm1, G_0_nm1, G_n_n, G_0_n)
+        complex(dp), dimension(:,:), intent(in) :: cE, h_n, U_nm1_n, G_nm1_nm1, G_0_nm1
+        complex(dp), intent(out) :: G_n_n(:,:), G_0_n(:,:)
 
-        complex(dp), allocatable :: tmp1(:,:), tmp2(:,:), z(:,:)
-        complex(dp), allocatable :: tmp3(:,:), tmp4(:,:)
-
-        if (size(cE, 1) /= size(h_i, 1) .or. size(cE, 2) /= size(h_i, 2)) then
+        if (size(cE, 1) /= size(h_n, 1) .or. size(cE, 2) /= size(h_n, 2)) then
             error stop "rgf_step: cE has incompatible dimensions with h_i"
         end if
 
-        allocate( tmp1(size(G_NN, 1), size(U_couple, 2)) )
-        allocate( tmp2(size(U_couple, 2), size(tmp1, 2)) )
-        allocate( z(size(cE, 1), size(cE, 2)) )
+        ! G_n_n will be used to store the matrix product
+        call matmul3(U_nm1_n, G_nm1_nm1, U_nm1_n, G_n_n, transa="C")
+        G_n_n = cE - h_n - G_n_n
+        call invert(G_n_n)
 
-        call matmul2(G_NN, U_couple, tmp1)
-        call matmul2(U_couple, tmp1, tmp2, transa="C")
-
-        z = cE - h_i - tmp2
-        call invert(z)
-
-        allocate( tmp3(size(U_couple, 1), size(G_NN, 2)) )
-        allocate( tmp4(size(G_0N, 1), size(tmp3, 2)) )
-
-        call matmul2(U_couple, G_NN, tmp3)
-        call matmul2(G_0N, tmp3, tmp4)
-
-        G_NN = z
-        G_0N = tmp4
+        call matmul3(G_0_nm1, U_nm1_n, G_n_n, G_0_n)
     end subroutine rgf_step
 
-    subroutine rgf_last_step(g_R, U_NNp1, G_NN, G_0N, G_0Np1)
-        complex(dp), intent(in) :: g_R(:,:), G_NN(:,:), G_0N(:,:), U_NNp1(:,:)
-        complex(dp), intent(out) :: G_0Np1(:,:)
+    subroutine rgf_last_step(g_R, U_N_Np1, G_N_N, G_0_N, G_Np1_Np1, G_0_Np1)
+        complex(dp), dimension(:,:), intent(in) :: g_R, G_N_N, G_0_N, U_N_Np1
+        complex(dp), dimension(:,:), intent(out) :: G_Np1_Np1, G_0_Np1
 
-        complex(dp), allocatable :: gR_inv(:,:), z(:,:)
-        complex(dp), allocatable :: tmp1(:,:), tmp2(:,:), tmp3(:,:), tmp4(:,:)
+        complex(dp), dimension(:,:), allocatable :: g_R_inv
 
-        gR_inv = g_R
-        call invert(gR_inv)
+        allocate( g_R_inv(size(g_R, 1), size(g_R, 2)) )
 
-        allocate( tmp1(size(G_NN, 1), size(U_NNp1, 2)) )
-        allocate( tmp2(size(U_NNp1, 2), size(tmp1, 2)) )
-        allocate( z(size(gR_inv, 1), size(gR_inv, 2)) )
+        g_R_inv = g_R
+        call invert(g_R_inv)
 
-        call matmul2(G_NN, U_NNp1, tmp1)
-        call matmul2(U_NNp1, tmp1, tmp2, transa="C")
+        call matmul3(U_N_Np1, G_N_N, U_N_Np1, G_Np1_Np1, transa="C")
+        G_Np1_Np1 = g_R_inv - G_Np1_Np1
+        call invert(G_Np1_Np1)
 
-        z = gR_inv - tmp2
-        call invert(z)
-
-        allocate( tmp3(size(U_NNp1, 1), size(z, 2)) )
-        allocate( tmp4(size(G_0N, 2), size(tmp3, 2)) )
-
-        call matmul2(U_NNp1, z, tmp3)
-        call matmul2(G_0N, tmp3, tmp4)
-        G_0Np1 = tmp4
+        call matmul3(G_0_N, U_N_Np1, g_R_inv, G_0_Np1)
     end subroutine rgf_last_step
 
 end module transmittance
