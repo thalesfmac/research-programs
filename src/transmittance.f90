@@ -39,7 +39,7 @@ module transmittance
 
     subroutine rgf_step(cE, h_n, U_nm1_n, G_nm1_nm1, G_0_nm1, G_n_n, G_0_n)
         complex(dp), dimension(:,:), intent(in), contiguous :: cE, h_n, U_nm1_n, G_nm1_nm1, G_0_nm1
-        complex(dp), intent(out), contiguous :: G_n_n(:,:), G_0_n(:,:)
+        complex(dp), dimension(:,:), intent(out), contiguous :: G_n_n, G_0_n
 
         if (size(cE, 1) /= size(h_n, 1) .or. size(cE, 2) /= size(h_n, 2)) then
             error stop "rgf_step: cE has incompatible dimensions with h_i"
@@ -64,6 +64,7 @@ module transmittance
         g_R_inv = g_R
         call invert(g_R_inv)
 
+        ! G_Np1_Np1 will be used to store the matrix product
         call matmul3(U_N_Np1, G_N_N, U_N_Np1, G_Np1_Np1, transa="C")
         G_Np1_Np1 = g_R_inv - G_Np1_Np1
         call invert(G_Np1_Np1)
