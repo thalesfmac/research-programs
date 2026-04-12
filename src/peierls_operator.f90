@@ -27,7 +27,7 @@ module peierls_operator
         real(dp), intent(out) :: P(0:, 0:)
         integer :: M, j, Nph
 
-        call assert_square(P, "P")
+        call assert_square(P, "P", caller="build_P")
 
         Nph = ubound(P, 1)
 
@@ -52,7 +52,7 @@ module peierls_operator
         complex(dp) :: hNM
         real(dp) :: prefactor
 
-        call assert_square(A, "A")
+        call assert_square(A, "A", caller="peierls_exp")
 
         Nph = ubound(A,1)
 
