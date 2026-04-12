@@ -54,7 +54,7 @@ module disordered_systems
         integer :: Nph, n
         real(dp) :: V_i
 
-        call assert_square(h_i, "h_i")
+        call assert_square(h_i, "h_i", caller="cavaa_slice_hamiltonian")
         Nph = ubound(h_i, dim=1)
 
         h_i = (0.0_dp, 0.0_dp)
@@ -71,7 +71,7 @@ module disordered_systems
         real(dp), intent(in) :: tcL, tcR, tlead, muL, muR
         real(dp) :: tt
 
-        integer :: i
+        integer :: n
         complex(dp), dimension(0:Nph, 0:Nph) :: cE, h_n, U, G_nm1_nm1, G_n_n
         complex(dp), dimension(0:0, 0:Nph) :: U_01, G_0_nm1, G_0_n
         complex(dp), dimension(0:Nph, 0:0) :: U_N_Np1
@@ -112,8 +112,8 @@ module disordered_systems
         call rgf_first_step(cE, h_n, U_01, g_L, G_nm1_nm1, G_0_nm1)
 
         ! Internal sites: 2, ..., Lx
-        do i = 2, Lx
-            call cavaa_slice_hamiltonian(h_n, i, V, beta, phi, omega)
+        do n = 2, Lx
+            call cavaa_slice_hamiltonian(h_n, n, V, beta, phi, omega)
             call rgf_step(cE, h_n, U, G_nm1_nm1, G_0_nm1, G_n_n, G_0_n)
             G_nm1_nm1 = G_n_n
             G_0_nm1 = G_0_n
