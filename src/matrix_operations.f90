@@ -167,15 +167,15 @@ module matrix_operations
 
     subroutine diagonalize(A, w, jobz, uplo)
         ! Diagonaliza Hermitiana complexa via ZHEEV.
-        complex(real64), intent(inout), contiguous :: A(:,:)
-        real(real64),    intent(out)   :: w(:)
+        complex(dp), intent(inout), contiguous :: A(:,:)
+        real(dp),    intent(out)   :: w(:)
         character(len=1), intent(in), optional :: jobz, uplo
 
         character(len=1) :: jobz_loc, uplo_loc
         integer :: n, lda, info, lwork
-        complex(real64), allocatable :: work(:)
-        real(real64),    allocatable :: rwork(:)
-        complex(real64) :: workq(1)
+        complex(dp), allocatable :: work(:)
+        real(dp),    allocatable :: rwork(:)
+        complex(dp) :: workq(1)
 
         jobz_loc = 'V'; if (present(jobz)) jobz_loc = jobz
         uplo_loc = 'U'; if (present(uplo)) uplo_loc = uplo
@@ -195,7 +195,7 @@ module matrix_operations
             error stop "diagonalize: ZHEEV workspace query failed"
         end if
 
-        lwork = int(real(workq(1), real64))
+        lwork = int(real(workq(1), dp))
         if (lwork < 1) lwork = 1
         allocate(work(lwork))
 
@@ -207,10 +207,10 @@ module matrix_operations
     end subroutine diagonalize
 
     subroutine invert(A)
-        complex(real64), intent(inout), contiguous :: A(:,:)
+        complex(dp), intent(inout), contiguous :: A(:,:)
         integer :: n, info, lwork
         integer, allocatable :: ipiv(:)
-        complex(real64), allocatable :: work(:)
+        complex(dp), allocatable :: work(:)
 
         n = size(A,1)
         if (size(A,2) /= n) error stop "invert: A must be square"
@@ -225,7 +225,7 @@ module matrix_operations
         allocate(work(1))
         call zgetri(n,A,n,ipiv,work,lwork,info)
         if (info /= 0) error stop "invert: ZGETRI workspace query failed"
-        lwork = int(real(work(1), real64))
+        lwork = int(real(work(1), dp))
         deallocate(work)
 
         allocate(work(max(1,lwork)))
@@ -236,7 +236,7 @@ module matrix_operations
     end subroutine invert
 
     subroutine op_shape(X, trans, nrow, ncol)
-        complex(real64), intent(in) :: X(:,:)
+        complex(dp), intent(in) :: X(:,:)
         character(len=1), intent(in) :: trans
         integer, intent(out) :: nrow, ncol
 
@@ -253,8 +253,8 @@ module matrix_operations
     end subroutine op_shape
 
     subroutine matmul2(A, B, C, transa, transb)
-        complex(real64), intent(in), contiguous :: A(:,:), B(:,:)
-        complex(real64), intent(out), contiguous :: C(:,:)
+        complex(dp), intent(in), contiguous :: A(:,:), B(:,:)
+        complex(dp), intent(out), contiguous :: C(:,:)
         character(len=1), intent(in), optional :: transa, transb
 
         integer a_rows, a_cols, b_rows, b_cols
@@ -272,7 +272,7 @@ module matrix_operations
             error stop "matmul2: C has incompatible dimensions for the result"
         end if
 
-        C = (0.0_real64, 0.0_real64)
+        C = (0.0_dp, 0.0_dp)
 
         lda = size(A,1)
         ldb = size(B,1)
@@ -284,27 +284,27 @@ module matrix_operations
             a_rows,  &
             b_cols,  &
             a_cols,  &
-            (1.0_real64, 0.0_real64), &
+            (1.0_dp, 0.0_dp), &
             A, &
             lda, &
             B, &
             ldb, &
-            (0.0_real64, 0.0_real64), &
+            (0.0_dp, 0.0_dp), &
             C, &
             ldc &
             )
     end subroutine matmul2
 
     subroutine matmul3(A, B, C, D, transa, transb, transc)
-        complex(real64), intent(in), contiguous :: A(:,:), B(:,:), C(:,:)
-        complex(real64), intent(out), contiguous :: D(:,:)
+        complex(dp), intent(in), contiguous :: A(:,:), B(:,:), C(:,:)
+        complex(dp), intent(out), contiguous :: D(:,:)
         character(len=1), intent(in), optional :: transa, transb, transc
 
         character(len=1) :: ta, tb, tc
         integer :: a_rows, a_cols
         integer :: b_rows, b_cols
         integer :: c_rows, c_cols
-        complex(real64), allocatable :: T(:,:)
+        complex(dp), allocatable :: T(:,:)
 
         ta = 'N'; if (present(transa)) ta = transa
         tb = 'N'; if (present(transb)) tb = transb
@@ -327,11 +327,8 @@ module matrix_operations
     end subroutine matmul3
 
     subroutine matmul4(A, B, C, D, E, transa, transb, transc, transd)
-        use iso_fortran_env, only: real64
-        implicit none
-
-        complex(real64), intent(in),  contiguous :: A(:,:), B(:,:), C(:,:), D(:,:)
-        complex(real64), intent(out), contiguous :: E(:,:)
+        complex(dp), intent(in),  contiguous :: A(:,:), B(:,:), C(:,:), D(:,:)
+        complex(dp), intent(out), contiguous :: E(:,:)
         character(len=1), intent(in), optional   :: transa, transb, transc, transd
 
         character(len=1) :: ta, tb, tc, td
@@ -339,7 +336,7 @@ module matrix_operations
         integer :: b_rows, b_cols
         integer :: c_rows, c_cols
         integer :: d_rows, d_cols
-        complex(real64), allocatable :: T1(:,:), T2(:,:)
+        complex(dp), allocatable :: T1(:,:), T2(:,:)
 
         ta = 'N'; if (present(transa)) ta = transa
         tb = 'N'; if (present(transb)) tb = transb
