@@ -26,23 +26,39 @@ module matrix_operations
 
     contains
 
+    pure function with_caller(msg, caller) result(full_msg)
+        character(len=*), intent(in) :: msg
+        character(len=*), intent(in), optional :: caller
+        character(len=:), allocatable :: full_msg
+
+        if (present(caller)) then
+            full_msg = trim(caller) // ": " // trim(msg)
+        else
+            full_msg = trim(msg)
+        end if
+    end function with_caller
+
+    subroutine shape_to_strings(nrow, ncol, srow, scol)
+        integer, intent(in) :: nrow, ncol
+        character(len=32), intent(out) :: srow, scol
+
+        write(srow, '(I0)') nrow
+        write(scol, '(I0)') ncol
+    end subroutine shape_to_strings
+
     subroutine assert_square_cdp(A, name, caller)
         complex(dp), intent(in) :: A(:, :)
         character(len=*), intent(in) :: name
         character(len=*), intent(in), optional :: caller
 
         character(len=32) :: n1, n2
-        character(len=:), allocatable :: msg
 
         if (size(A,1) /= size(A,2)) then
-            write(n1, '(I0)') size(A,1)
-            write(n2, '(I0)') size(A,2)
-
-            msg = trim(name) // " must be square, got shape (" // trim(n1) // "," // trim(n2) // ")"
-
-            if (present(caller)) msg = trim(caller) // ": " // msg
-
-            error stop msg
+            call shape_to_strings(size(A,1), size(A,2), n1, n2)
+            error stop with_caller( &
+                trim(name) // " must be square, got shape (" // &
+                trim(n1) // "," // trim(n2) // ")", caller &
+                )
         end if
     end subroutine assert_square_cdp
 
@@ -52,17 +68,13 @@ module matrix_operations
         character(len=*), intent(in), optional :: caller
 
         character(len=32) :: n1, n2
-        character(len=:), allocatable :: msg
 
         if (size(A,1) /= size(A,2)) then
-            write(n1, '(I0)') size(A,1)
-            write(n2, '(I0)') size(A,2)
-
-            msg = trim(name) // " must be square, got shape (" // trim(n1) // "," // trim(n2) // ")"
-
-            if (present(caller)) msg = trim(caller) // ": " // msg
-
-            error stop msg
+            call shape_to_strings(size(A,1), size(A,2), n1, n2)
+            error stop with_caller( &
+                trim(name) // " must be square, got shape (" // &
+                trim(n1) // "," // trim(n2) // ")", caller &
+                )
         end if
     end subroutine assert_square_rdp
 
@@ -137,15 +149,13 @@ module matrix_operations
     end subroutine assert_same_shape_rdp
 
     subroutine identity_matrix(A)
-        complex(dp), intent(out) :: A(:,:)
-        integer :: lo, hi, i
+        complex(dp), intent(out), contiguous :: A(:,:)
+        integer :: i
 
-        call assert_square(A, "A")
-        lo = lbound(A,1)
-        hi = ubound(A,1)
+        call assert_square(A, "A", "identity_matrix")
 
         A = (0.0_dp, 0.0_dp)
-        do i = lo, hi
+        do i = 1, size(A, dim=1)
             A(i, i) = (1.0_dp, 0.0_dp)
         end do
     end subroutine identity_matrix
@@ -153,14 +163,12 @@ module matrix_operations
     function trace(A) result(retval)
         complex(dp), intent(in) :: A(:,:)
         complex(dp) :: retval
-        integer :: lo, hi, i
+        integer :: i
 
-        call assert_square(A, "A")
-        lo = lbound(A,1)
-        hi = ubound(A,1)
+        call assert_square(A, "A", "trace")
 
         retval = (0.0_dp, 0.0_dp)
-        do i = lo, hi
+        do i = 1, size(A, dim=1)
             retval = retval + A(i, i)
         end do
     end function trace
@@ -180,9 +188,10 @@ module matrix_operations
         jobz_loc = 'V'; if (present(jobz)) jobz_loc = jobz
         uplo_loc = 'U'; if (present(uplo)) uplo_loc = uplo
 
+        call assert_square(A, "A", caller="diagonalize")
+
         n = size(A,1)
-        if (size(A,2) /= n) error stop "diagonalize: A must be square"
-        if (size(w)   /= n) error stop "diagonalize: w must have length n of A"
+        if (size(w) /= n) error stop "diagonalize: w must have length n of A"
         lda = n
 
         allocate(rwork(max(1, 3*n - 2)))
@@ -211,6 +220,8 @@ module matrix_operations
         integer :: n, info, lwork
         integer, allocatable :: ipiv(:)
         complex(dp), allocatable :: work(:)
+
+        call assert_square(A, "A", caller="invert")
 
         n = size(A,1)
         if (size(A,2) /= n) error stop "invert: A must be square"
