@@ -5,18 +5,13 @@ module matrix_operations
 
     private
     public :: identity_matrix, trace
-    public :: assert_square, assert_matmul_compatibility, assert_same_shape
+    public :: assert_square, assert_same_shape
     public :: diagonalize, invert
     public :: matmul2, matmul3, matmul4
 
     interface assert_square
         module procedure assert_square_cdp
         module procedure assert_square_rdp
-    end interface
-
-    interface assert_matmul_compatibility
-        module procedure assert_matmul_compatibility_cdp
-        module procedure assert_matmul_compatibility_rdp
     end interface
 
     interface assert_same_shape
@@ -78,73 +73,39 @@ module matrix_operations
         end if
     end subroutine assert_square_rdp
 
-    subroutine assert_matmul_compatibility_cdp(A, B, nameA, nameB)
+    subroutine assert_same_shape_cdp(A, B, nameA, nameB, caller)
         complex(dp), intent(in) :: A(:, :), B(:, :)
         character(len=*), intent(in) :: nameA, nameB
+        character(len=*), intent(in), optional :: caller
 
-        character(len=32) :: a1, a2, b1, b2
-
-        if (size(A,2) /= size(B,1)) then
-            write(a1, '(I0)') size(A,1)
-            write(a2, '(I0)') size(A,2)
-            write(b1, '(I0)') size(B,1)
-            write(b2, '(I0)') size(B,2)
-
-            error stop trim(nameA) // " (" // trim(a1) // "," // trim(a2) // &
-                ") and " // trim(nameB) // " (" // trim(b1) // "," // trim(b2) // &
-                ") are not compatible for matmul"
-        end if
-    end subroutine assert_matmul_compatibility_cdp
-
-    subroutine assert_matmul_compatibility_rdp(A, B, nameA, nameB)
-        real(dp), intent(in) :: A(:, :), B(:, :)
-        character(len=*), intent(in) :: nameA, nameB
-
-        character(len=32) :: a1, a2, b1, b2
-
-        if (size(A,2) /= size(B,1)) then
-            write(a1, '(I0)') size(A,1)
-            write(a2, '(I0)') size(A,2)
-            write(b1, '(I0)') size(B,1)
-            write(b2, '(I0)') size(B,2)
-
-            error stop trim(nameA) // " (" // trim(a1) // "," // trim(a2) // &
-                ") and " // trim(nameB) // " (" // trim(b1) // "," // trim(b2) // &
-                ") are not compatible for matmul"
-        end if
-    end subroutine assert_matmul_compatibility_rdp
-
-    subroutine assert_same_shape_cdp(A, B, nameA, nameB)
-        complex(dp), intent(in) :: A(:, :), B(:, :)
-        character(len=*), intent(in) :: nameA, nameB
         character(len=32) :: a1, a2, b1, b2
 
         if (size(A,1) /= size(B,1) .or. size(A,2) /= size(B,2)) then
-            write(a1, '(I0)') size(A,1)
-            write(a2, '(I0)') size(A,2)
-            write(b1, '(I0)') size(B,1)
-            write(b2, '(I0)') size(B,2)
+            call shape_to_strings(size(A,1), size(A,2), a1, a2)
+            call shape_to_strings(size(B,1), size(B,2), b1, b2)
 
-            error stop trim(nameA) // " (" // trim(a1) // "," // trim(a2) // &
-                ") and " // trim(nameB) // " (" // trim(b1) // "," // trim(b2) // &
-                ") do not have the same shape"
+            error stop with_caller( &
+                trim(nameA) // " has shape (" // trim(a1) // "," // trim(a2) // &
+                "), " // trim(nameB) // " has shape (" // trim(b1) // "," // trim(b2) // &
+                "), expected same shape", caller )
         end if
     end subroutine assert_same_shape_cdp
 
-    subroutine assert_same_shape_rdp(A, B, nameA, nameB)
+    subroutine assert_same_shape_rdp(A, B, nameA, nameB, caller)
         real(dp), intent(in) :: A(:, :), B(:, :)
         character(len=*), intent(in) :: nameA, nameB
+        character(len=*), intent(in), optional :: caller
+
         character(len=32) :: a1, a2, b1, b2
 
         if (size(A,1) /= size(B,1) .or. size(A,2) /= size(B,2)) then
-            write(a1, '(I0)') size(A,1)
-            write(a2, '(I0)') size(A,2)
-            write(b1, '(I0)') size(B,1)
-            write(b2, '(I0)') size(B,2)
+            call shape_to_strings(size(A,1), size(A,2), a1, a2)
+            call shape_to_strings(size(B,1), size(B,2), b1, b2)
 
-            error stop trim(nameA) // " (" // trim(a1) // "," // trim(a2) // &
-                ") and " // trim(nameB) // " (" // trim(b1) // "," // trim(b2) // &
-                ") do not have the same shape"
+            error stop with_caller( &
+                trim(nameA) // " has shape (" // trim(a1) // "," // trim(a2) // &
+                "), " // trim(nameB) // " has shape (" // trim(b1) // "," // trim(b2) // &
+                "), expected same shape", caller )
         end if
     end subroutine assert_same_shape_rdp
 
