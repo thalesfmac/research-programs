@@ -1,6 +1,5 @@
 program main
-    use, intrinsic :: iso_fortran_env, only : dp => real64
-    use precision
+    use precision, only : dp
     use constants, only : INV_PHI
     use rng_utils
     use array_io
