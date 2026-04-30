@@ -1,9 +1,15 @@
-# Compilador
-# FC := gfortran
+# HDF5 wrapper
 FC := h5fc
 
+# Fortran compiler
+HDF5_FC ?= gfortran
+export HDF5_FC
+
+# Compilation profile: debug or release
+BUILD ?= release
+
 # Executável final
-TARGET := cavityaa_rgf.x
+TARGET := cavityaa_rgf.out
 
 # Diretórios
 SRC_DIR := src
@@ -12,12 +18,69 @@ OBJ_DIR := build/obj
 MOD_DIR := build/mod
 BIN_DIR := build/bin
 
-# Flags
-FFLAGS := -g -fcheck=all -fbacktrace -Og -Wall -Wextra -J$(MOD_DIR) -I$(MOD_DIR)
-# LDLIBS := -llapack -lblas -lhdf5_fortran -lhdf5
-LDLIBS := -llapack -lblas
+# Common flags
+FFLAGS_COMMON := -I$(MOD_DIR)
 
-# Fontes
+# Compiler specific flags
+ifeq ($(HDF5_FC), gfortran)
+
+	MODFLAG := -J$(MOD_DIR)
+	LDLIBS := -llapack -lblas
+
+	ifeq ($(BUILD), release)
+		FFLAGS_OPT := -O2
+		FFLAGS_WARN :=
+		FFLAGS_DEBUG :=
+	else ifeq ($(BUILD), debug)
+		FFLAGS_OPT := -Og
+		FFLAGS_WARN := -Wall -Wextra
+		FFLAGS_DEBUG := -g -fcheck=all -fbacktrace
+	else
+		$(error Unsupported BUILD='$(BUILD)'. Use debug or release)
+	endif
+
+else ifeq ($(HDF5_FC), ifort)
+
+	MODFLAG := -module $(MOD_DIR)
+	LDLIBS := -qmkl
+
+	ifeq ($(BUILD), debug)
+		FFLAGS_OPT := -O0
+		FFLAGS_WARN := -warn all
+		FFLAGS_DEBUG := -g -traceback -check all -diag-disable=10448
+	else ifeq ($(BUILD), release)
+		FFLAGS_OPT := -O2
+		FFLAGS_WARN := -warn all
+		FFLAGS_DEBUG := -diag-disable=10448
+	else
+		$(error Unsupported BUILD='$(BUILD)'. Use debug or release)
+	endif
+
+else ifeq ($(HDF5_FC), ifx)
+
+	MODFLAG := -module $(MOD_DIR)
+	LDLIBS := -qmkl
+
+	ifeq ($(BUILD), debug)
+		FFLAGS_OPT := -O0
+		FFLAGS_WARN := -warn all
+		FFLAGS_DEBUG := -g -traceback -check all
+	else ifeq ($(BUILD), release)
+		FFLAGS_OPT := -O2
+		FFLAGS_WARN := -warn all
+		FFLAGS_DEBUG :=
+	else
+		$(error Unsupported BUILD='$(BUILD)'. Use debug or release)
+	endif
+
+else
+	$(error Unsupported HDF5_FC='$(HDF5_FC)'. Use gfortran, ifort, or ifx)
+endif
+
+# Final flags
+FFLAGS := $(FFLAGS_DEBUG) $(FFLAGS_OPT) $(FFLAGS_WARN) $(MODFLAG) $(FFLAGS_COMMON)
+
+# Source files
 SRC_FILES := \
 	$(SRC_DIR)/precision.f90 \
 	$(SRC_DIR)/constants.f90 \
@@ -32,8 +95,8 @@ SRC_FILES := \
 	$(SRC_DIR)/disordered_systems.f90 \
 	$(APP_DIR)/cavityaa_rgf.f90
 
-# Objetos
-OBJ_FILES := $(patsubst %.f90,$(OBJ_DIR)/%.o,$(notdir $(SRC_FILES)))
+# Object files
+OBJ_FILES := $(patsubst %.f90, $(OBJ_DIR)/%.o, $(notdir $(SRC_FILES)))
 
 # Regra principal
 all: dirs $(BIN_DIR)/$(TARGET)
