@@ -3,7 +3,7 @@
 FC := h5fc
 
 # Executável final
-TARGET := cavityaa_rgf.out
+TARGET := cavityaa_rgf.x
 
 # Diretórios
 SRC_DIR := src
