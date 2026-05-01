@@ -56,6 +56,8 @@ program main
                 muL    = muS,          &
                 muR    = muD )
         end do
+
+        write(*, *) "Disorder conf. =", i
     end do
 
     call save_array_1d("energies_" // trim(outname) // ".dat", energies)

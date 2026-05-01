@@ -63,6 +63,8 @@ program main
                 muL    = muS,          &
                 muR    = muD )
         end do
+
+        write(*, *) "Lx =", Lx
     end do
 
     call save_array_1d("lengths_" // trim(outname) // ".dat", lengths)
