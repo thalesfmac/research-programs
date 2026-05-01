@@ -7,9 +7,6 @@ COMPILER ?= gfortran
 # Compilation profile: debug or release
 BUILD ?= release
 
-# Executável final
-TARGET := cavityaa_rgf.out
-
 # Diretórios
 SRC_DIR := src
 APP_DIR := app
@@ -79,8 +76,8 @@ endif
 # Final flags
 FFLAGS := $(FFLAGS_DEBUG) $(FFLAGS_OPT) $(FFLAGS_WARN) $(MODFLAG) $(FFLAGS_COMMON)
 
-# Source files
-SRC_FILES := \
+# Modules sources
+MOD_FILES := \
     $(SRC_DIR)/precision.f90 \
     $(SRC_DIR)/constants.f90 \
     $(SRC_DIR)/lapack_blas_interface.f90 \
@@ -91,17 +88,22 @@ SRC_FILES := \
     $(SRC_DIR)/lead_green_function.f90 \
     $(SRC_DIR)/transmittance.f90 \
     $(SRC_DIR)/disordered_systems.f90 \
-    $(APP_DIR)/cavityaa_rgf.f90
+
+# Program sources
+APP_FILES := $(wildcard $(APP_DIR)/*.f90)
 
 # Object files
-OBJ_FILES := $(patsubst %.f90, $(OBJ_DIR)/%.o, $(notdir $(SRC_FILES)))
+OBJ_FILES := $(patsubst %.f90, $(OBJ_DIR)/%.o, $(notdir $(MOD_FILES)))
+
+# Executable files
+EXE_FILES := $(patsubst $(APP_DIR)/%.f90, $(BIN_DIR)/%.out, $(APP_FILES))
 
 # Regra principal
-all: dirs $(BIN_DIR)/$(TARGET)
+all: dirs $(EXE_FILES)
 
 # Linkedição
-$(BIN_DIR)/$(TARGET): $(OBJ_FILES)
-	$(COMPILER) $(FFLAGS) $(OBJ_FILES) -o $@ $(LDLIBS)
+$(BIN_DIR)/%.out: $(APP_DIR)/%.f90 $(OBJ_FILES) | dirs
+	$(COMPILER) $(FFLAGS) $(OBJ_FILES) $< -o $@ $(LDLIBS)
 
 # Compilação dos arquivos de src
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.f90 | dirs
