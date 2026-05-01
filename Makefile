@@ -2,7 +2,7 @@
 MAKEFLAGS += --no-builtin-rules --no-builtin-variables
 
 # Fortran compiler
-FC ?= gfortran
+COMPILER ?= gfortran
 
 # Compilation profile: debug or release
 BUILD ?= release
@@ -21,7 +21,7 @@ BIN_DIR := build/bin
 FFLAGS_COMMON := -I$(MOD_DIR)
 
 # Compiler specific flags
-ifeq ($(FC), gfortran)
+ifeq ($(COMPILER), gfortran)
 
     MODFLAG := -J$(MOD_DIR)
     LDLIBS := -llapack -lblas
@@ -33,12 +33,12 @@ ifeq ($(FC), gfortran)
     else ifeq ($(BUILD), debug)
         FFLAGS_OPT := -Og
         FFLAGS_WARN := -Wall -Wextra
-        FFLAGS_DEBUG := -g -fcheck=all -fbacktrace
+        FFLAGS_DEBUG := -g -COMPILERheck=all -fbacktrace
     else
         $(error Unsupported BUILD='$(BUILD)'. Use debug or release)
     endif
 
-else ifeq ($(FC), ifort)
+else ifeq ($(COMPILER), ifort)
 
     MODFLAG := -module $(MOD_DIR)
     LDLIBS := -qmkl
@@ -55,7 +55,7 @@ else ifeq ($(FC), ifort)
         $(error Unsupported BUILD='$(BUILD)'. Use debug or release)
     endif
 
-else ifeq ($(FC), ifx)
+else ifeq ($(COMPILER), ifx)
 
     MODFLAG := -module $(MOD_DIR)
     LDLIBS := -qmkl
@@ -73,7 +73,7 @@ else ifeq ($(FC), ifx)
     endif
 
 else
-    $(error Unsupported FC='$(FC)'. Use gfortran, ifort, or ifx)
+    $(error Unsupported COMPILER='$(COMPILER)'. Use gfortran, ifort, or ifx)
 endif
 
 # Final flags
@@ -101,15 +101,15 @@ all: dirs $(BIN_DIR)/$(TARGET)
 
 # Linkedição
 $(BIN_DIR)/$(TARGET): $(OBJ_FILES)
-	$(FC) $(FFLAGS) $(OBJ_FILES) -o $@ $(LDLIBS)
+	$(COMPILER) $(FFLAGS) $(OBJ_FILES) -o $@ $(LDLIBS)
 
 # Compilação dos arquivos de src
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.f90 | dirs
-	$(FC) $(FFLAGS) -c $< -o $@
+	$(COMPILER) $(FFLAGS) -c $< -o $@
 
 # Compilação do main em app
 $(OBJ_DIR)/%.o: $(APP_DIR)/%.f90 | dirs
-	$(FC) $(FFLAGS) -c $< -o $@
+	$(COMPILER) $(FFLAGS) -c $< -o $@
 
 # Criar diretórios
 dirs:
