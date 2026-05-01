@@ -30,7 +30,7 @@ ifeq ($(COMPILER), gfortran)
     else ifeq ($(BUILD), debug)
         FFLAGS_OPT := -Og
         FFLAGS_WARN := -Wall -Wextra
-        FFLAGS_DEBUG := -g -COMPILERheck=all -fbacktrace
+        FFLAGS_DEBUG := -g -fcheck=all -fbacktrace
     else
         $(error Unsupported BUILD='$(BUILD)'. Use debug or release)
     endif
@@ -93,10 +93,10 @@ MOD_FILES := \
 APP_FILES := $(wildcard $(APP_DIR)/*.f90)
 
 # Object files
-OBJ_FILES := $(patsubst %.f90, $(OBJ_DIR)/%.o, $(notdir $(MOD_FILES)))
+OBJ_FILES := $(patsubst %.f90,$(OBJ_DIR)/%.o,$(notdir $(MOD_FILES)))
 
 # Executable files
-EXE_FILES := $(patsubst $(APP_DIR)/%.f90, $(BIN_DIR)/%.out, $(APP_FILES))
+EXE_FILES := $(patsubst $(APP_DIR)/%.f90,$(BIN_DIR)/%.out,$(APP_FILES))
 
 # Regra principal
 all: dirs $(EXE_FILES)
