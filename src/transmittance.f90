@@ -69,7 +69,7 @@ module transmittance
         G_Np1_Np1 = g_R_inv - G_Np1_Np1
         call invert(G_Np1_Np1)
 
-        call matmul3(G_0_N, U_N_Np1, g_R_inv, G_0_Np1)
+        call matmul3(G_0_N, U_N_Np1, G_Np1_Np1, G_0_Np1)
     end subroutine rgf_last_step
 
 end module transmittance
