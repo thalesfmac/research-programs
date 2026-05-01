@@ -65,11 +65,11 @@ program main
         end do
     end do
 
-    ! call save_array_1d("lengths_" // trim(outname) // ".dat", lengths)
-    ! call save_array_2d("transmissions_" // trim(outname) // ".dat", transmissions)
+    call save_array_1d("lengths_" // trim(outname) // ".dat", lengths)
+    call save_array_2d("transmissions_" // trim(outname) // ".dat", transmissions)
 
-    call save_array_bin("lengths_" // trim(outname) // ".bin", lengths)
-    call save_array_bin("transmissions_" // trim(outname) // ".bin", transmissions)
+    ! call save_array_bin("lengths_" // trim(outname) // ".bin", lengths)
+    ! call save_array_bin("transmissions_" // trim(outname) // ".bin", transmissions)
 
     deallocate(lengths, phis, transmissions)
 

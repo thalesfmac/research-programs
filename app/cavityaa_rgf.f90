@@ -60,7 +60,7 @@ program main
 
     call save_array_1d("energies_" // trim(outname) // ".dat", energies)
     call save_array_2d("transmissions_" // trim(outname) // ".dat", transmissions)
-    call save_array_bin("transmissions_" // trim(outname) // ".bin", transmissions)
+    ! call save_array_bin("transmissions_" // trim(outname) // ".bin", transmissions)
 
     deallocate(energies, phis, transmissions)
 
