@@ -1,0 +1,10 @@
+{
+    "fortran.linter.includePaths": [
+        "/usr/include/hdf5/**",
+        "/usr/lib64/gfortran/modules/**"
+    ],
+    "fortran.formatting.findentArgs": [
+        "--indent=4",
+        "--indent_contains=0"
+    ]
+}
