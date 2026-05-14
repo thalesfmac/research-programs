@@ -68,6 +68,10 @@ program main
         end do
     end do
 
+    call save_array_bin("energies_" // trim(outname) // ".bin", energies)
+    call save_array_bin("lengths_" // trim(outname) // ".bin", lengths)
+    call save_array_bin("transmissions_" // trim(outname) // ".bin", transmissions)
+
     call save_array_1d("energies_" // trim(outname) // ".dat", energies)
     call save_array_1d("lengths_" // trim(outname) // ".dat", lengths)
 
@@ -75,7 +79,6 @@ program main
         write(jstr, '(I4.4)') j
 
         call save_array_2d("transmissions_" // trim(outname) // "_" // trim(jstr) //".dat", transmissions(:, :, j))
-        ! call save_array_bin("transmissions_" // trim(outname) // ".bin", transmissions)
     end do
 
 
