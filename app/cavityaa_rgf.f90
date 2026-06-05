@@ -7,32 +7,32 @@ program main
     implicit none
 
     character(len=256) :: outname
-    integer :: Lx, Nph, seed, Ndisorder, NEpoints, NLpoints
+    integer :: Nph, seed, Ndisorder, NEpoints, NLpoints
     real(dp) :: t, V
     real(dp) :: tcS, tcD, tlead, muS, muD
     real(dp) :: omega, g
 
-    real(dp), allocatable :: energies(:), phis(:), lengths(:)
+    real(dp), allocatable :: energies(:), phis(:), lengths_real(:)
     real(dp), allocatable :: transmissions(:, :, :)
     real(dp) :: Emin, Emax
-    integer :: Lmin, Lmax
+    integer :: Lmin, Lmax, Lstep
     real(dp), parameter :: ETA = 1.0e-10_dp
 
     integer :: i, j, k
     character(len=32) :: jstr
 
+    integer, allocatable :: lengths_int(:)
+
     call readInput()
 
-    NLpoints = Lmax - Lmin + 1
-    if (NLpoints <= 0) then
-        error stop "main: Lmax must be greater than or equal to Lmin"
-    end if
+    lengths_int = arange_int(start=Lmin, stop=Lmax, step=Lstep)
+    NLpoints = size(lengths_int)
+    lengths_real = real(lengths_int, dp)
 
     call writeInput("parameters_" // trim(outname) // ".txt")
 
     call rng_initialize(seed)
 
-    allocate(lengths(NLpoints))
     allocate(energies(NEpoints))
     allocate(phis(Ndisorder))
     allocate(transmissions(NLpoints, NEpoints, Ndisorder))
@@ -41,39 +41,35 @@ program main
     call aa_random_phases(phis)
 
     do k = 1, NLpoints
-        Lx = Lmin + k - 1
-        lengths(k) = real(Lx, dp)
-
         do i = 1, NEpoints
             do j = 1, Ndisorder
                 transmissions(k, i, j) = cavaa_rgf_transmission( &
-                    E      = energies(i),  &
-                    eta    = ETA,          &
-                    Lx     = Lx,           &
-                    Nph    = Nph,          &
-                    t      = t,            &
-                    V      = V,            &
-                    beta   = INV_PHI,      &
-                    phi    = phis(j),      &
-                    g      = g,            &
-                    omega  = omega,        &
-                    tcL    = tcS,          &
-                    tcR    = tcD,          &
-                    tlead  = tlead,        &
-                    muL    = muS,          &
+                    E      = energies(i),     &
+                    eta    = ETA,             &
+                    Lx     = lengths_int(k),  &
+                    Nph    = Nph,             &
+                    t      = t,               &
+                    V      = V,               &
+                    beta   = INV_PHI,         &
+                    phi    = phis(j),         &
+                    g      = g,               &
+                    omega  = omega,           &
+                    tcL    = tcS,             &
+                    tcR    = tcD,             &
+                    tlead  = tlead,           &
+                    muL    = muS,             &
                     muR    = muD )
+                write(*, *) "Done: L = ", lengths_int(k), "E = ", energies(i), "Disorder: ", j
             end do
-
-            write(*, *) "L = ", Lx
         end do
     end do
 
     call save_array_bin("energies_" // trim(outname) // ".bin", energies)
-    call save_array_bin("lengths_" // trim(outname) // ".bin", lengths)
+    call save_array_bin("lengths_" // trim(outname) // ".bin", lengths_real)
     call save_array_bin("transmissions_" // trim(outname) // ".bin", transmissions)
 
     call save_array_1d("energies_" // trim(outname) // ".dat", energies)
-    call save_array_1d("lengths_" // trim(outname) // ".dat", lengths)
+    call save_array_1d("lengths_" // trim(outname) // ".dat", lengths_real)
 
     do j = 1, Ndisorder
         write(jstr, '(I4.4)') j
@@ -82,7 +78,7 @@ program main
     end do
 
 
-    deallocate(lengths, energies, phis, transmissions)
+    deallocate(lengths_real, energies, phis, transmissions)
 
     contains
 
@@ -90,7 +86,7 @@ program main
         use, intrinsic :: iso_fortran_env, only : input_unit
         read(input_unit,*) outname
         read(input_unit,*) NEpoints, Ndisorder
-        read(input_unit,*) Lmin, Lmax
+        read(input_unit,*) Lmin, Lmax, Lstep
         read(input_unit,*) Emin, Emax
         read(input_unit,*) Nph
         read(input_unit,*) seed
