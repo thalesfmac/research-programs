@@ -4,6 +4,7 @@ module array_io
 
     private
     public :: save_array_1d, save_array_2d, save_array_bin
+    public :: arange_int
 
     contains
     subroutine save_array_1d(filename, A)
@@ -94,4 +95,31 @@ module array_io
 
         if (allocated(shp)) deallocate(shp)
     end subroutine save_array_bin
+
+    function arange_int(start, stop, step) result(values)
+        integer, intent(in) :: start, stop, step
+        integer, allocatable :: values(:)
+
+        integer :: n, i
+
+        if (step == 0) then
+            error stop "arange_int: step cannot be zero"
+        end if
+
+        if ((stop - start)*step <= 0) then
+            allocate(values(0))
+            return
+        end if
+
+        n = (stop - start + step - sign(1, step)) / step
+
+        allocate(values(n))
+
+        do i = 1, n
+            values(i) = start + (i - 1)*step
+        end do
+
+    end function arange_int
+
+
 end module array_io
