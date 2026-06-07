@@ -59,8 +59,9 @@ program main
                     tlead  = tlead,           &
                     muL    = muS,             &
                     muR    = muD )
-                write(*, *) "Done: L = ", lengths_int(k), "E = ", energies(i), "Disorder: ", j
             end do
+
+            write(*, *) "Done: L = ", lengths_int(k), "E = ", energies(i)
         end do
     end do
 
