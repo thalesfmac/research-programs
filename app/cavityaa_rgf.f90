@@ -12,21 +12,19 @@ program main
     real(dp) :: tcS, tcD, tlead, muS, muD
     real(dp) :: omega, g
 
+    integer, allocatable :: lengths_int(:)
     real(dp), allocatable :: energies(:), phis(:), lengths_real(:)
     real(dp), allocatable :: transmissions(:, :, :)
     real(dp) :: Emin, Emax
-    integer :: Lmin, Lmax, Lstep
+    integer :: Lmin, Lmax
     real(dp), parameter :: ETA = 1.0e-10_dp
 
     integer :: i, j, k
-    character(len=32) :: jstr
-
-    integer, allocatable :: lengths_int(:)
+    ! character(len=32) :: jstr
 
     call readInput()
 
-    lengths_int = arange_int(start=Lmin, stop=Lmax, step=Lstep)
-    NLpoints = size(lengths_int)
+    lengths_int = geomspace_int(start=Lmin, stop=Lmax, num=NLpoints)
     lengths_real = real(lengths_int, dp)
 
     call writeInput("parameters_" // trim(outname) // ".txt")
@@ -65,21 +63,21 @@ program main
         end do
     end do
 
+    call save_array_bin("transmissions_" // trim(outname) // ".bin", transmissions)
     call save_array_bin("energies_" // trim(outname) // ".bin", energies)
     call save_array_bin("lengths_" // trim(outname) // ".bin", lengths_real)
-    call save_array_bin("transmissions_" // trim(outname) // ".bin", transmissions)
 
-    call save_array_1d("energies_" // trim(outname) // ".dat", energies)
-    call save_array_1d("lengths_" // trim(outname) // ".dat", lengths_real)
+    ! call save_array_1d("energies_" // trim(outname) // ".dat", energies)
+    ! call save_array_1d("lengths_" // trim(outname) // ".dat", lengths_real)
 
-    do j = 1, Ndisorder
-        write(jstr, '(I4.4)') j
+    ! do j = 1, Ndisorder
+    !     write(jstr, '(I4.4)') j
 
-        call save_array_2d("transmissions_" // trim(outname) // "_" // trim(jstr) //".dat", transmissions(:, :, j))
-    end do
+    !     call save_array_2d("transmissions_" // trim(outname) // "_" // trim(jstr) //".dat", transmissions(:, :, j))
+    ! end do
 
 
-    deallocate(lengths_real, energies, phis, transmissions)
+    deallocate(lengths_int, lengths_real, energies, phis, transmissions)
 
     contains
 
@@ -87,7 +85,7 @@ program main
         use, intrinsic :: iso_fortran_env, only : input_unit
         read(input_unit,*) outname
         read(input_unit,*) NEpoints, Ndisorder
-        read(input_unit,*) Lmin, Lmax, Lstep
+        read(input_unit,*) Lmin, Lmax, NLpoints
         read(input_unit,*) Emin, Emax
         read(input_unit,*) Nph
         read(input_unit,*) seed
