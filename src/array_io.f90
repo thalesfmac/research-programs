@@ -4,7 +4,7 @@ module array_io
 
     private
     public :: save_array_1d, save_array_2d, save_array_bin
-    public :: arange_int
+    public :: arange_int, geomspace_int
 
     contains
     subroutine save_array_1d(filename, A)
@@ -120,6 +120,47 @@ module array_io
         end do
 
     end function arange_int
+
+    function geomspace_int(start, stop, num) result(values)
+        integer, intent(in) :: start
+        integer, intent(in) :: stop
+        integer, intent(in) :: num
+
+        integer, allocatable :: values(:)
+
+        real(dp) :: log_start, log_stop, dlog
+        integer :: i
+
+        if (num < 0) then
+            error stop "geomspace_int: num must be non-negative"
+        end if
+
+        allocate(values(num))
+
+        if (num == 0) return
+
+        if (start <= 0 .or. stop <= 0) then
+            error stop "geomspace_int: start and stop must be positive"
+        end if
+
+        if (num == 1) then
+            values(1) = start
+            return
+        end if
+
+        log_start = log(real(start, dp))
+        log_stop  = log(real(stop, dp))
+
+        dlog = (log_stop - log_start) / real(num - 1, dp)
+
+        do i = 1, num
+            values(i) = nint(exp(log_start + real(i - 1, dp)*dlog))
+        end do
+
+        values(1) = start
+        values(num) = stop
+
+    end function geomspace_int
 
 
 end module array_io
