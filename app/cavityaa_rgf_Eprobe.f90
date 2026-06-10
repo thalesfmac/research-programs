@@ -51,7 +51,7 @@ program main
                 muR    = muD )
         end do
 
-        write(*, *) "Disorder conf. =", i
+        write(*, *) (100 * i + NEpoints / 2) / NEpoints, "done: Energy =", energies(i)
     end do
 
     ! call save_array_1d("energies_" // trim(outname) // ".dat", energies)
