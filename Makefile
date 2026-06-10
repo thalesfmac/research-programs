@@ -7,6 +7,9 @@ COMPILER ?= gfortran
 # Compilation profile: debug or release
 BUILD ?= release
 
+# User/local configuration
+-include config.mk
+
 # Diretórios
 SRC_DIR := src
 APP_DIR := app
@@ -99,7 +102,7 @@ OBJ_FILES := $(patsubst %.f90,$(OBJ_DIR)/%.o,$(notdir $(MOD_FILES)))
 EXE_FILES := $(patsubst $(APP_DIR)/%.f90,$(BIN_DIR)/%.out,$(APP_FILES))
 
 # Regra principal
-all: dirs $(EXE_FILES)
+all: info dirs $(EXE_FILES)
 
 # Linkedição
 $(BIN_DIR)/%.out: $(APP_DIR)/%.f90 $(OBJ_FILES) | dirs
@@ -117,8 +120,20 @@ $(OBJ_DIR)/%.o: $(APP_DIR)/%.f90 | dirs
 dirs:
 	mkdir -p $(OBJ_DIR) $(MOD_DIR) $(BIN_DIR)
 
+info:
+	@echo "Configuration:"
+	@echo "  COMPILER = $(COMPILER)"
+	@echo "  BUILD    = $(BUILD)"
+	@echo "  SRC_DIR  = $(SRC_DIR)"
+	@echo "  APP_DIR  = $(APP_DIR)"
+	@echo "  OBJ_DIR  = $(OBJ_DIR)"
+	@echo "  MOD_DIR  = $(MOD_DIR)"
+	@echo "  BIN_DIR  = $(BIN_DIR)"
+	@echo "  FFLAGS   = $(FFLAGS)"
+	@echo "  LDLIBS   = $(LDLIBS)"
+
 # Limpeza
 clean:
 	rm -rf build
 
-.PHONY: all clean dirs
+.PHONY: all clean dirs info

@@ -46,3 +46,6 @@
 *.dat
 *.bin
 *.txt
+
+# Makefile
+config.mk
