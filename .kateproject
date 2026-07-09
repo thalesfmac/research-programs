@@ -1,0 +1,11 @@
+{
+    "name": "research-programs",
+    "commands": [
+        {
+            "name": "fprettify",
+            "output": "none",
+            "save-document": true,
+            "shell": "fprettify %{Document:FileName}"
+        }
+    ]
+}
