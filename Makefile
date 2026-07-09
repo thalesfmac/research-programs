@@ -85,7 +85,7 @@ MOD_FILES := \
     $(SRC_DIR)/constants.f90 \
     $(SRC_DIR)/lapack_blas_interface.f90 \
     $(SRC_DIR)/array_io.f90 \
-    $(SRC_DIR)/rng_utils.f90 \
+    $(SRC_DIR)/random_number_generator.f90 \
     $(SRC_DIR)/matrix_operations.f90 \
     $(SRC_DIR)/peierls_operator.f90 \
     $(SRC_DIR)/lead_green_function.f90 \
