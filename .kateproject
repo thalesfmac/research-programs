@@ -5,6 +5,7 @@
             "name": "fprettify",
             "output": "none",
             "save-document": true,
+            "mimetype": "text/x-fortran",
             "shell": "fprettify %{Document:FileName}"
         }
     ]
