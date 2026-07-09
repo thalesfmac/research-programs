@@ -3,7 +3,7 @@ program main
     use constants, only : INV_PHI
     use rng_utils
     use array_io
-    use disordered_systems
+    use aubry_andre
     implicit none
 
     character(len=256) :: outname

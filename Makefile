@@ -90,7 +90,7 @@ MOD_FILES := \
     $(SRC_DIR)/peierls_operator.f90 \
     $(SRC_DIR)/lead_green_function.f90 \
     $(SRC_DIR)/transmittance.f90 \
-    $(SRC_DIR)/disordered_systems.f90 \
+    $(SRC_DIR)/aubry_andre.f90 \
 
 # Program sources
 APP_FILES := $(wildcard $(APP_DIR)/*.f90)

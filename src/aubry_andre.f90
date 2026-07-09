@@ -1,4 +1,4 @@
-module disordered_systems
+module aubry_andre
     use :: precision, only : dp
     use :: constants, only : PI
     use :: matrix_operations, only : identity_matrix, assert_square
@@ -126,4 +126,4 @@ module disordered_systems
         tt = caroli_transmission(G_0_Np1, gamma_L, gamma_R)
     end function cavaa_rgf_transmission
 
-end module disordered_systems
+end module aubry_andre
