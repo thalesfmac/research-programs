@@ -1,109 +1,109 @@
 program main
-    use precision, only : dp
-    use constants, only : INV_PHI
-    use rng_utils
-    use array_io
-    use aubry_andre
-    implicit none
+   use precision, only: dp
+   use constants, only: INV_PHI
+   use rng_utils
+   use array_io
+   use aubry_andre
+   implicit none
 
-    character(len=256) :: outname
-    integer :: Lx, Nph, seed, Ndisorder, NEpoints
-    real(dp) :: t, V
-    real(dp) :: tcS, tcD, tlead, muS, muD
-    real(dp) :: omega, g
+   character(len=256) :: outname
+   integer :: Lx, Nph, seed, Ndisorder, NEpoints
+   real(dp) :: t, V
+   real(dp) :: tcS, tcD, tlead, muS, muD
+   real(dp) :: omega, g
 
-    real(dp), allocatable :: energies(:), phis(:), transmissions(:, :)
-    real(dp) :: Emin, Emax
-    real(dp), parameter :: ETA = 1.0e-10_dp
+   real(dp), allocatable :: energies(:), phis(:), transmissions(:, :)
+   real(dp) :: Emin, Emax
+   real(dp), parameter :: ETA = 1.0e-10_dp
 
-    integer :: i, j
+   integer :: i, j
 
-    call readInput()
+   call readInput()
 
-    call writeInput("parameters_" // trim(outname) // ".txt")
+   call writeInput("parameters_"//trim(outname)//".txt")
 
-    call rng_initialize(seed)
+   call rng_initialize(seed)
 
-    allocate(energies(NEpoints))
-    allocate(phis(Ndisorder))
-    allocate(transmissions(NEpoints, Ndisorder))
+   allocate (energies(NEpoints))
+   allocate (phis(Ndisorder))
+   allocate (transmissions(NEpoints, Ndisorder))
 
-    call energy_grid(Egrid = energies, Emin = Emin, Emax = Emax)
-    call aa_random_phases(phis)
+   call energy_grid(Egrid=energies, Emin=Emin, Emax=Emax)
+   call aa_random_phases(phis)
 
-    do i = 1, NEpoints
-        do j = 1, Ndisorder
-            transmissions(i, j) = cavaa_rgf_transmission( &
-                E      = energies(i),  &
-                eta    = ETA,          &
-                Lx     = Lx,           &
-                Nph    = Nph,          &
-                t      = t,            &
-                V      = V,            &
-                beta   = INV_PHI,      &
-                phi    = phis(j),      &
-                g      = g,            &
-                omega  = omega,        &
-                tcL    = tcS,          &
-                tcR    = tcD,          &
-                tlead  = tlead,        &
-                muL    = muS,          &
-                muR    = muD )
-        end do
+   do i = 1, NEpoints
+      do j = 1, Ndisorder
+         transmissions(i, j) = cavaa_rgf_transmission( &
+                               E=energies(i), &
+                               eta=ETA, &
+                               Lx=Lx, &
+                               Nph=Nph, &
+                               t=t, &
+                               V=V, &
+                               beta=INV_PHI, &
+                               phi=phis(j), &
+                               g=g, &
+                               omega=omega, &
+                               tcL=tcS, &
+                               tcR=tcD, &
+                               tlead=tlead, &
+                               muL=muS, &
+                               muR=muD)
+      end do
 
-        write(*, *) (100 * i + NEpoints / 2) / NEpoints, "done: Energy =", energies(i)
-    end do
+      write (*, *) (100*i + NEpoints/2)/NEpoints, "done: Energy =", energies(i)
+   end do
 
-    ! call save_array_1d("energies_" // trim(outname) // ".dat", energies)
-    ! call save_array_2d("transmissions_" // trim(outname) // ".dat", transmissions)
-    ! call save_array_bin("transmissions_" // trim(outname) // ".bin", transmissions)
+   ! call save_array_1d("energies_" // trim(outname) // ".dat", energies)
+   ! call save_array_2d("transmissions_" // trim(outname) // ".dat", transmissions)
+   ! call save_array_bin("transmissions_" // trim(outname) // ".bin", transmissions)
 
-    call save_array_bin("transmissions_" // trim(outname) // ".bin", transmissions)
-    call save_array_bin("energies_" // trim(outname) // ".bin", energies)
+   call save_array_bin("transmissions_"//trim(outname)//".bin", transmissions)
+   call save_array_bin("energies_"//trim(outname)//".bin", energies)
 
-    deallocate(energies, phis, transmissions)
+   deallocate (energies, phis, transmissions)
 
-    contains
+contains
 
-    subroutine readInput()
-        use, intrinsic :: iso_fortran_env, only : input_unit
-        read(input_unit,*) outname
-        read(input_unit,*) Lx, NEpoints, Ndisorder
-        read(input_unit,*) Emin, Emax
-        read(input_unit,*) Nph
-        read(input_unit,*) seed
-        read(input_unit,*) t, V
-        read(input_unit,*) omega, g
-        read(input_unit,*) tcS, tcD, tlead, muS, muD
-    end subroutine readInput
+   subroutine readInput()
+      use, intrinsic :: iso_fortran_env, only: input_unit
+      read (input_unit, *) outname
+      read (input_unit, *) Lx, NEpoints, Ndisorder
+      read (input_unit, *) Emin, Emax
+      read (input_unit, *) Nph
+      read (input_unit, *) seed
+      read (input_unit, *) t, V
+      read (input_unit, *) omega, g
+      read (input_unit, *) tcS, tcD, tlead, muS, muD
+   end subroutine readInput
 
-    subroutine writeInput(filename)
-        character(len=*), intent(in) :: filename
-        integer :: unit
+   subroutine writeInput(filename)
+      character(len=*), intent(in) :: filename
+      integer :: unit
 
-        open(newunit=unit, file=filename, status="replace", action="write")
+      open (newunit=unit, file=filename, status="replace", action="write")
 
-        write(unit, *) "Input data"
-        write(unit, *) "outname=", trim(outname)
-        write(unit, *) "Lx=", Lx
-        write(unit, *) "Nph=", Nph
-        write(unit, *) "seed=", seed
-        write(unit, *) "Energy grid=", NEpoints
-        write(unit, *) "Emin=", Emin
-        write(unit, *) "Emax=", Emax
-        write(unit, *) "Number of disorder conf.=", Ndisorder
-        write(unit, *) "t=", t
-        write(unit, *) "V=", V
-        write(unit, *) "beta=", INV_PHI
-        write(unit, *) "omega=", omega
-        write(unit, *) "g=", g
-        write(unit, *) "tcS=", tcS
-        write(unit, *) "tcD=", tcD
-        write(unit, *) "tlead=", tlead
-        write(unit, *) "muS=", muS
-        write(unit, *) "muD=", muD
+      write (unit, *) "Input data"
+      write (unit, *) "outname=", trim(outname)
+      write (unit, *) "Lx=", Lx
+      write (unit, *) "Nph=", Nph
+      write (unit, *) "seed=", seed
+      write (unit, *) "Energy grid=", NEpoints
+      write (unit, *) "Emin=", Emin
+      write (unit, *) "Emax=", Emax
+      write (unit, *) "Number of disorder conf.=", Ndisorder
+      write (unit, *) "t=", t
+      write (unit, *) "V=", V
+      write (unit, *) "beta=", INV_PHI
+      write (unit, *) "omega=", omega
+      write (unit, *) "g=", g
+      write (unit, *) "tcS=", tcS
+      write (unit, *) "tcD=", tcD
+      write (unit, *) "tlead=", tlead
+      write (unit, *) "muS=", muS
+      write (unit, *) "muD=", muD
 
-        close(unit)
-    end subroutine writeInput
+      close (unit)
+   end subroutine writeInput
 
 end program main

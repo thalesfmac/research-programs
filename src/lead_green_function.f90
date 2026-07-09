@@ -1,59 +1,59 @@
 module lead_green_function
-    use :: precision, only : dp
-    use :: constants, only : CI
-    use :: matrix_operations, only : matmul3
-    implicit none
+   use :: precision, only:dp
+   use :: constants, only:CI
+   use :: matrix_operations, only:matmul3
+   implicit none
 
-    private
-    public :: surface_gf_1d
-    public :: surface_self_energy_left, surface_self_energy_right
-    public :: broadening
+   private
+   public :: surface_gf_1d
+   public :: surface_self_energy_left, surface_self_energy_right
+   public :: broadening
 
-    contains
+contains
 
-    function f(x) result(res)
-        real(dp), intent(in) :: x
-        complex(dp) :: res
+   function f(x) result(res)
+      real(dp), intent(in) :: x
+      complex(dp) :: res
 
-        if (abs(x) >= 2.0_dp) error stop "f: |x| must be < 2"
+      if (abs(x) >= 2.0_dp) error stop "f: |x| must be < 2"
 
-        res = cmplx(x, -sqrt(4.0_dp - x*x), kind=dp)
-    end function f
+      res = cmplx(x, -sqrt(4.0_dp - x*x), kind=dp)
+   end function f
 
-    function surface_gf_1d(E, tlead, mu) result(gs)
-        real(dp), intent(in) :: E, tlead, mu
-        complex(dp) :: gs
+   function surface_gf_1d(E, tlead, mu) result(gs)
+      real(dp), intent(in) :: E, tlead, mu
+      complex(dp) :: gs
 
-        real(dp) :: x
+      real(dp) :: x
 
-        x = (E - mu) / tlead
-        gs = f(x) / cmplx(2.0_dp*tlead, kind=dp)
-    end function surface_gf_1d
+      x = (E - mu)/tlead
+      gs = f(x)/cmplx(2.0_dp*tlead, kind=dp)
+   end function surface_gf_1d
 
-    subroutine surface_self_energy_left(surf_gf_l, u_left, sigma_left)
-        complex(dp), intent(in), contiguous  :: surf_gf_l(:, :), u_left(:, :)
-        complex(dp), intent(out), contiguous :: sigma_left(:, :)
+   subroutine surface_self_energy_left(surf_gf_l, u_left, sigma_left)
+      complex(dp), intent(in), contiguous  :: surf_gf_l(:, :), u_left(:, :)
+      complex(dp), intent(out), contiguous :: sigma_left(:, :)
 
-        call matmul3(u_left, surf_gf_l, u_left, sigma_left, transc="C")
-    end subroutine surface_self_energy_left
+      call matmul3(u_left, surf_gf_l, u_left, sigma_left, transc="C")
+   end subroutine surface_self_energy_left
 
-    subroutine surface_self_energy_right(surf_gf_r, u_right, sigma_right)
-        complex(dp), intent(in), contiguous  :: surf_gf_r(:, :), u_right(:, :)
-        complex(dp), intent(out), contiguous :: sigma_right(:, :)
+   subroutine surface_self_energy_right(surf_gf_r, u_right, sigma_right)
+      complex(dp), intent(in), contiguous  :: surf_gf_r(:, :), u_right(:, :)
+      complex(dp), intent(out), contiguous :: sigma_right(:, :)
 
-        call matmul3(u_right, surf_gf_r, u_right, sigma_right, transa="C")
-    end subroutine surface_self_energy_right
+      call matmul3(u_right, surf_gf_r, u_right, sigma_right, transa="C")
+   end subroutine surface_self_energy_right
 
-    subroutine broadening(sigma, gam)
-        complex(dp), intent(in), contiguous :: sigma(:, :)
-        complex(dp), intent(out), contiguous :: gam(:, :)
+   subroutine broadening(sigma, gam)
+      complex(dp), intent(in), contiguous :: sigma(:, :)
+      complex(dp), intent(out), contiguous :: gam(:, :)
 
-        ! if (size(sigma, 1) /= size(sigma, 2)) error stop "broadening: sigma must be square"
-        if (size(gam, 1) /= size(sigma, 1) .or. size(gam, 2) /= size(sigma, 2)) then
-            error stop "broadening: gam has incompatible dimensions with sigma"
-        end if
+      ! if (size(sigma, 1) /= size(sigma, 2)) error stop "broadening: sigma must be square"
+      if (size(gam, 1) /= size(sigma, 1) .or. size(gam, 2) /= size(sigma, 2)) then
+         error stop "broadening: gam has incompatible dimensions with sigma"
+      end if
 
-        gam = CI * (sigma - conjg( transpose( sigma ) ))
-    end subroutine broadening
+      gam = CI*(sigma - conjg(transpose(sigma)))
+   end subroutine broadening
 
 end module lead_green_function
