@@ -1,12 +1,8 @@
 {
-    "name": "research-programs",
-    "commands": [
+    "name": "Research Programs",
+    "files": [
         {
-            "name": "fprettify",
-            "output": "none",
-            "save-document": true,
-            "mimetype": "text/x-fortran",
-            "shell": "fprettify %{Document:FileName}"
+            "git": 1
         }
     ]
 }
