@@ -46,38 +46,63 @@ contains
       V_i = V*cos(2.0_dp*PI*beta*real(site, kind=dp) + phi)
    end function aa_onsite_potential
 
-   subroutine cav_site_photon_to_index(site, Nph, L, idx)
-      integer, intent(in)  :: site, Nph, L
+   subroutine cav_site_photon_to_index(site, n, L, idx)
+      integer, intent(in)  :: site, n, L
       integer, intent(out) :: idx
 
-      idx = site + L*nph
+      idx = site + L*n
    end subroutine cav_site_photon_to_index
 
-   subroutine cav_index_to_site_photon(idx, L, site, Nph)
+   subroutine cav_index_to_site_photon(idx, L, site, n)
       integer, intent(in)  :: idx, L
-      integer, intent(out) :: site, Nph
+      integer, intent(out) :: site, n
 
-      nph = (idx - 1)/L
+      n = (idx - 1)/L
       site = mod(idx - 1, L) + 1
    end subroutine cav_index_to_site_photon
 
    subroutine cavaa_hamiltonian(H, L, Nph, t, V, beta, phi, gam, omega)
       complex(dp), intent(out) :: H(:, :)
-      integer :: L, Nph
-      real(dp) :: t, V, beta, phi, gam, omega
+      integer, intent(in) :: L, Nph
+      real(dp), intent(in) :: t, V, beta, phi, gam, omega
 
-      complex(dp) :: PE(0:Nph, 0:Nph)
-      real(dp) :: g
-      integer :: i, j, n, m
+      complex(dp) :: PE(0:Nph, 0:Nph), h_NM
+      real(dp) :: g, v_i
+      integer :: i, j, n, m, full_i, full_j
+
+      if (size(H, 1) /= L*(Nph + 1) .or. size(H, 2) /= L*(Nph + 1)) then
+         error stop "cavaa_hamiltonian: wrong H size"
+      end if
 
       g = gam/t
-      call peierls_exp(PE, g)
+      call peierls_exp(PE, gam)
 
       H = (0.0_dp, 0.0_dp)
 
+      ! Diagonal
       do n = 0, Nph
+         do i = 1, L
+            v_i = aa_onsite_potential(V, i, beta, phi)
+            call cav_site_photon_to_index(i, n, L, full_i)
+
+            H(full_i, full_i) = cmplx(v_i + real(n, kind=dp)*omega, kind=dp)
+         end do
       end do
 
+      ! Off-diagonal
+      do n = 0, Nph
+         do m = 0, Nph
+            h_NM = PE(n, m)
+            do i = 1, L - 1
+               j = i + 1
+               call cav_site_photon_to_index(i, n, L, full_i)
+               call cav_site_photon_to_index(j, m, L, full_j)
+
+               H(full_i, full_j) = cmplx(-t, kind=dp)*h_NM
+               H(full_j, full_i) = cmplx(-t, kind=dp)*conjg(h_NM)
+            end do
+         end do
+      end do
    end subroutine cavaa_hamiltonian
 
    subroutine cavaa_slice_hamiltonian(h_i, i, V, beta, phi, omega)
