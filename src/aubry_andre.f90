@@ -1,6 +1,6 @@
 module aubry_andre
    use :: precision, only:dp
-   use :: constants, only:PI
+   use :: constants, only:PI, CI
    use :: matrix_operations, only:identity_matrix, assert_square
    use :: lead_green_function, only:surface_gf_1d, surface_self_energy_left, surface_self_energy_right, broadening
    use :: peierls_operator, only:peierls_exp
@@ -45,6 +45,40 @@ contains
 
       V_i = V*cos(2.0_dp*PI*beta*real(site, kind=dp) + phi)
    end function aa_onsite_potential
+
+   subroutine cav_site_photon_to_index(site, Nph, L, idx)
+      integer, intent(in)  :: site, Nph, L
+      integer, intent(out) :: idx
+
+      idx = site + L*nph
+   end subroutine cav_site_photon_to_index
+
+   subroutine cav_index_to_site_photon(idx, L, site, Nph)
+      integer, intent(in)  :: idx, L
+      integer, intent(out) :: site, Nph
+
+      nph = (idx - 1)/L
+      site = mod(idx - 1, L) + 1
+   end subroutine cav_index_to_site_photon
+
+   subroutine cavaa_hamiltonian(H, L, Nph, t, V, beta, phi, gam, omega)
+      complex(dp), intent(out) :: H(:, :)
+      integer :: L, Nph
+      real(dp) :: t, V, beta, phi, gam, omega
+
+      complex(dp) :: PE(0:Nph, 0:Nph)
+      real(dp) :: g
+      integer :: i, j, n, m
+
+      g = gam/t
+      call peierls_exp(PE, g)
+
+      H = (0.0_dp, 0.0_dp)
+
+      do n = 0, Nph
+      end do
+
+   end subroutine cavaa_hamiltonian
 
    subroutine cavaa_slice_hamiltonian(h_i, i, V, beta, phi, omega)
       integer, intent(in) :: i
