@@ -67,14 +67,13 @@ contains
       real(dp), intent(in) :: t, V, beta, phi, gam, omega
 
       complex(dp) :: PE(0:Nph, 0:Nph), h_NM
-      real(dp) :: g, v_i
+      real(dp) :: v_i
       integer :: i, j, n, m, full_i, full_j
 
       if (size(H, 1) /= L*(Nph + 1) .or. size(H, 2) /= L*(Nph + 1)) then
          error stop "cavaa_hamiltonian: wrong H size"
       end if
 
-      g = gam/t
       call peierls_exp(PE, gam)
 
       H = (0.0_dp, 0.0_dp)
