@@ -10,6 +10,7 @@ module aubry_andre
    private
    public :: aa_random_phases
    public :: aa_onsite_potential, cavaa_slice_hamiltonian
+   public :: cavaa_hamiltonian
    public :: energy_grid, cavaa_rgf_transmission
 
 contains
