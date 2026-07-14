@@ -137,7 +137,7 @@ contains
    subroutine diagonalize(A, w, jobz, uplo)
       ! Diagonaliza Hermitiana complexa via ZHEEV.
       complex(dp), intent(inout), contiguous :: A(:, :)
-      real(dp), intent(out)   :: w(:)
+      real(dp), intent(out) :: w(:)
       character(len=1), intent(in), optional :: jobz, uplo
 
       character(len=1) :: jobz_loc, uplo_loc
@@ -301,7 +301,7 @@ contains
    subroutine matmul4(A, B, C, D, E, transa, transb, transc, transd)
       complex(dp), intent(in), contiguous :: A(:, :), B(:, :), C(:, :), D(:, :)
       complex(dp), intent(out), contiguous :: E(:, :)
-      character(len=1), intent(in), optional   :: transa, transb, transc, transd
+      character(len=1), intent(in), optional :: transa, transb, transc, transd
 
       character(len=1) :: ta, tb, tc, td
       integer :: a_rows, a_cols
