@@ -13,5 +13,6 @@
     "fortran.formatting.fprettifyArgs": [
         "--strict-indent",
         "--enable-decl"
-    ]
+    ],
+    "git.autofetch": true
 }
