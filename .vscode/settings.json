@@ -4,7 +4,14 @@
         "/usr/lib64/gfortran/modules/**"
     ],
     "fortran.formatting.findentArgs": [
-        "--indent=4",
-        "--indent_contains=0"
+        "--indent=3"
+    ],
+    "fortran.formatting.formatter": "fprettify",
+    "editor.defaultFormatter": "fortran-lang.linter-gfortran",
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "file",
+    "fortran.formatting.fprettifyArgs": [
+        "--strict-indent",
+        "--enable-decl"
     ]
 }
