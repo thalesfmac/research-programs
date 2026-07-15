@@ -3,10 +3,10 @@
         "/usr/include/hdf5/**",
         "/usr/lib64/gfortran/modules/**"
     ],
+    "fortran.formatting.formatter": "fprettify",
     "fortran.formatting.findentArgs": [
         "--indent=3"
     ],
-    "fortran.formatting.formatter": "fprettify",
     "editor.defaultFormatter": "fortran-lang.linter-gfortran",
     "editor.formatOnSave": true,
     "editor.formatOnSaveMode": "file",
@@ -14,5 +14,16 @@
         "--strict-indent",
         "--enable-decl"
     ],
+    "[FortranFreeForm]": {
+        "editor.rulers": [
+            {
+                "column": 79
+            },
+            {
+                "column": 132,
+                "color": "#FF0000"
+            },
+        ]
+    },
     "git.autofetch": true
 }
