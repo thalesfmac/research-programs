@@ -15,7 +15,7 @@ program main
 
    integer :: NN
    complex(dp), allocatable :: H(:, :)
-   real(dp), allocatable :: egv(:)
+   real(dp), allocatable :: egv(:), Pph(:, :)
    ! character(len=32) :: jstr
 
    call readInput()
@@ -29,17 +29,22 @@ program main
    allocate (H(NN, NN), egv(NN))
 
    call cavaa_hamiltonian(H, L, Nph, t, V, INV_PHI, PHI, gam, omega)
-
    call diagonalize(H, egv)
+   call photon_probability(Pph, H, L, Nph)
 
-   call save_array_2d("hamiltonian_re.txt", H%re)
-   call save_array_2d("hamiltonian_im.txt", H%im)
+   call save_array_bin("energies_"//trim(outname)//".bin", egv)
+   call save_array_bin("photon_prob_"//trim(outname)//".bin", Pph)
+
+   ! call save_array_2d("hamiltonian_re.txt", H%re)
+   ! call save_array_2d("hamiltonian_im.txt", H%im)
    ! allocate (energies(NEpoints))
    ! allocate (phis(Ndisorder))
    ! allocate (transmissions(NLpoints, NEpoints, Ndisorder))
 
    ! energy_grid(Egrid=energies, Emin=Emin, Emax=Emax)
    ! call aa_random_phases(phis)
+
+   deallocate (H, egv, Pph)
 
 contains
 
