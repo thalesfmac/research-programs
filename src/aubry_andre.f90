@@ -188,7 +188,7 @@ contains
 
    subroutine photon_probability(Pph, evecs, L, Nph)
       complex(dp), intent(in) :: evecs(:, :)
-      real(dp), intent(out) :: Pph(0:, :)
+      real(dp), allocatable, intent(out) :: Pph(:, :)
       integer, intent(in) :: L, Nph
 
       integer :: alpha, i, n, idx
@@ -201,14 +201,7 @@ contains
          error stop "photon_probability: wrong evecs size"
       end if
 
-      if (size(Pph, 1) /= Nph + 1) then
-         error stop "photon_probability: wrong Pph photon dimension"
-      end if
-
-      if (size(Pph, 2) /= nstates) then
-         error stop "photon_probability: wrong Pph state dimension"
-      end if
-
+      allocate (Pph(0:Nph, NN))
       Pph = 0.0_dp
 
       do alpha = 1, nstates
