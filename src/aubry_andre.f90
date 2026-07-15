@@ -12,12 +12,13 @@ module aubry_andre
    public :: aa_onsite_potential, cavaa_slice_hamiltonian
    public :: cavaa_hamiltonian
    public :: energy_grid, cavaa_rgf_transmission
+   public :: photon_probability
 
 contains
 
    subroutine energy_grid(Egrid, Emin, Emax)
       real(dp), intent(out) :: Egrid(:)
-      real(dp), intent(in)  :: Emin, Emax
+      real(dp), intent(in) :: Emin, Emax
 
       integer :: i, N
       real(dp) :: dE
@@ -48,14 +49,14 @@ contains
    end function aa_onsite_potential
 
    subroutine cav_site_photon_to_index(site, n, L, idx)
-      integer, intent(in)  :: site, n, L
+      integer, intent(in) :: site, n, L
       integer, intent(out) :: idx
 
       idx = site + L*n
    end subroutine cav_site_photon_to_index
 
    subroutine cav_index_to_site_photon(idx, L, site, n)
-      integer, intent(in)  :: idx, L
+      integer, intent(in) :: idx, L
       integer, intent(out) :: site, n
 
       n = (idx - 1)/L
@@ -184,5 +185,42 @@ contains
       ! Calculate the transmission probability
       tt = caroli_transmission(G_0_Np1, gamma_L, gamma_R)
    end function cavaa_rgf_transmission
+
+   subroutine photon_probability(Pph, evecs, L, Nph)
+      complex(dp), intent(in) :: evecs(:, :)
+      real(dp), intent(out) :: Pph(0:, :)
+      integer, intent(in) :: L, Nph
+
+      integer :: alpha, i, n, idx
+      integer :: NN, nstates
+
+      NN = L*(Nph + 1)
+      nstates = size(evecs, 2)
+
+      if (size(evecs, 1) /= NN) then
+         error stop "photon_probability: wrong evecs size"
+      end if
+
+      if (size(Pph, 1) /= Nph + 1) then
+         error stop "photon_probability: wrong Pph photon dimension"
+      end if
+
+      if (size(Pph, 2) /= nstates) then
+         error stop "photon_probability: wrong Pph state dimension"
+      end if
+
+      Pph = 0.0_dp
+
+      do alpha = 1, nstates
+         do n = 0, Nph
+            do i = 1, L
+               call cav_site_photon_to_index(i, n, L, idx)
+
+               Pph(n, alpha) = Pph(n, alpha) + abs(evecs(idx, alpha))**2
+            end do
+         end do
+      end do
+
+   end subroutine photon_probability
 
 end module aubry_andre
