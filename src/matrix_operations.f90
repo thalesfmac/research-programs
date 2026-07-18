@@ -176,6 +176,71 @@ contains
       if (info /= 0) error stop "diagonalize: ZHEEV failed"
    end subroutine diagonalize
 
+   subroutine diagonalize_d(A, w, jobz, uplo)
+      ! Diagonaliza matriz Hermitiana complexa via ZHEEVD.
+      complex(dp), intent(inout), contiguous :: A(:, :)
+      real(dp), intent(out) :: w(:)
+      character(len=1), intent(in), optional :: jobz, uplo
+
+      character(len=1) :: jobz_loc, uplo_loc
+      integer :: n, lda, info
+      integer :: lwork, lrwork, liwork
+
+      complex(dp), allocatable :: work(:)
+      real(dp), allocatable :: rwork(:)
+      integer, allocatable :: iwork(:)
+
+      complex(dp) :: workq(1)
+      real(dp) :: rworkq(1)
+      integer :: iworkq(1)
+
+      jobz_loc = 'V'
+      if (present(jobz)) jobz_loc = jobz
+
+      uplo_loc = 'U'
+      if (present(uplo)) uplo_loc = uplo
+
+      call assert_square(A, "A", caller="diagonalize_d")
+
+      n = size(A, 1)
+
+      if (size(w) /= n) then
+         error stop "diagonalize_d: w must have length n of A"
+      end if
+
+      lda = max(1, n)
+
+      ! Consulta dos tamanhos ótimos dos workspaces.
+      lwork = -1
+      lrwork = -1
+      liwork = -1
+
+      call zheevd(jobz_loc, uplo_loc, n, A, lda, w, workq, lwork, rworkq, lrwork, iworkq, liwork, info)
+
+      if (info /= 0) then
+         error stop "diagonalize_d: ZHEEVD workspace query failed"
+      end if
+
+      lwork = max(1, int(real(workq(1), kind=dp)))
+      lrwork = max(1, int(rworkq(1)))
+      liwork = max(1, iworkq(1))
+
+      allocate (work(lwork))
+      allocate (rwork(lrwork))
+      allocate (iwork(liwork))
+
+      ! Diagonalização.
+      call zheevd(jobz_loc, uplo_loc, n, A, lda, w, work, lwork, rwork, lrwork, iwork, liwork, info)
+
+      deallocate (work, rwork, iwork)
+
+      if (info < 0) then
+         error stop "diagonalize_d: ZHEEVD received an invalid argument"
+      else if (info > 0) then
+         error stop "diagonalize_d: ZHEEVD failed to converge"
+      end if
+   end subroutine diagonalize_d
+
    subroutine invert(A)
       complex(dp), intent(inout), contiguous :: A(:, :)
       integer :: n, info, lwork
