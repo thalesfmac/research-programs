@@ -6,7 +6,7 @@ module matrix_operations
    private
    public :: identity_matrix, trace
    public :: assert_square, assert_same_shape
-   public :: diagonalize, invert
+   public :: diagonalize, diagonalize_d, invert
    public :: matmul2, matmul3, matmul4
 
    interface assert_square
