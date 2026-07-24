@@ -1,7 +1,5 @@
 module peierls_operator
    use :: precision, only:dp
-   use :: stdlib_error, only:check
-   use :: stdlib_linalg, only:is_square
    implicit none
    private
 
@@ -39,6 +37,9 @@ contains
    end subroutine build_P
 
    subroutine peierls_exp(A, g)
+      use :: stdlib_error, only:check
+      use :: stdlib_linalg, only:is_square
+      use :: constants, only:CI
       complex(dp), intent(out) :: A(0:, 0:)
       real(dp), intent(in) :: g
 
@@ -48,8 +49,6 @@ contains
       integer :: M, N, s, j
       complex(dp) :: hNM
       real(dp) :: prefactor
-
-      complex(dp), parameter :: CI = (0.0_dp, 1.0_dp)
 
       call check(is_square(A), msg="peierls_exp: A must be a square matrix")
 
@@ -61,10 +60,9 @@ contains
       call build_factorials(fact)
       call build_P(P)
 
-      prefactor = exp(-0.5_dp*(g*g))
+      prefactor = exp(-0.5_dp*g**2)
       A = (0.0_dp, 0.0_dp)
 
-      ! índices físicos N,M = 0..Nph  (no array: +1)
       do N = 0, Nph
          do M = 0, Nph
             hNM = (0.0_dp, 0.0_dp)
@@ -73,8 +71,7 @@ contains
                do j = 0, M
                   ! delta(N-s, M-j) == 1  <=>  N - s == M - j
                   if (N - s == M - j) then
-                     hNM = hNM + ((CI*g)**s)*((CI*g)**j) &
-                           *P(s, N)*P(j, M)/(fact(s)*fact(j))
+                     hNM = hNM + ((CI*g)**s)*((CI*g)**j)*P(s, N)*P(j, M)/(fact(s)*fact(j))
                   end if
                end do
             end do
