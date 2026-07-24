@@ -1,6 +1,6 @@
 module aubry_andre
    use :: precision, only:dp
-   use :: constants, only:PI, CI
+   use :: constants, only:PI
    use :: matrix_operations, only:identity_matrix, assert_square
    use :: lead_green_function, only:surface_gf_1d, surface_self_energy_left, surface_self_energy_right, broadening
    use :: peierls_operator, only:peierls_exp
