@@ -1,11 +1,10 @@
 module peierls_operator
    use :: precision, only:dp
-   use :: constants, only:CI
-   use :: matrix_operations, only:assert_square
-
+   use :: stdlib_error, only:check
+   use :: stdlib_linalg, only:is_square
    implicit none
-
    private
+
    public :: peierls_exp
 
 contains
@@ -26,8 +25,6 @@ contains
    subroutine build_P(P)
       real(dp), intent(out) :: P(0:, 0:)
       integer :: M, j, Nph
-
-      call assert_square(P, "P", caller="build_P")
 
       Nph = ubound(P, 1)
 
@@ -52,7 +49,9 @@ contains
       complex(dp) :: hNM
       real(dp) :: prefactor
 
-      call assert_square(A, "A", caller="peierls_exp")
+      complex(dp), parameter :: CI = (0.0_dp, 1.0_dp)
+
+      call check(is_square(A), msg="peierls_exp: A must be a square matrix")
 
       Nph = ubound(A, 1)
 
@@ -74,13 +73,13 @@ contains
                do j = 0, M
                   ! delta(N-s, M-j) == 1  <=>  N - s == M - j
                   if (N - s == M - j) then
-                     hNM = hNM + prefactor*((CI*g)**s)*((CI*g)**j) &
+                     hNM = hNM + ((CI*g)**s)*((CI*g)**j) &
                            *P(s, N)*P(j, M)/(fact(s)*fact(j))
                   end if
                end do
             end do
 
-            A(N, M) = hNM
+            A(N, M) = prefactor*hNM
          end do
       end do
    end subroutine peierls_exp
