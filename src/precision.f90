@@ -1,6 +1,7 @@
 module precision
-   use, intrinsic :: iso_fortran_env, only: dp => real64
+   use stdlib_kinds, only: dp
    implicit none
-   public
+   private
 
+   public :: dp
 end module precision
