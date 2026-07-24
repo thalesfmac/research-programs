@@ -1,6 +1,7 @@
 module transmittance
    use :: precision, only:dp
-   use :: matrix_operations, only:trace, invert, matmul3, matmul4
+   use :: matrix_operations, only:invert, matmul3, matmul4
+   use :: stdlib_linalg, only:trace
    implicit none
 
    private
