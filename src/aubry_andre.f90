@@ -65,14 +65,14 @@ contains
    end subroutine cav_index_to_site_photon
 
    subroutine cavaa_hamiltonian(H, L, Nph, t, V, phi, gam, omega, beta)
-      complex(dp), intent(out) :: H(:, :)
+      complex(dp), allocatable, intent(out) :: H(:, :)
       integer, intent(in) :: L, Nph
       real(dp), intent(in) :: t, V, phi, gam, omega
       real(dp), intent(in), optional :: beta
 
       complex(dp) :: PE(0:Nph, 0:Nph), h_NM
       real(dp) :: beta_eff, v_i
-      integer :: i, j, n, m, full_i, full_j
+      integer :: dim, i, j, n, m, full_i, full_j
 
       real(dp), parameter :: beta_default = (sqrt(5.0_dp) - 1.0_dp)/2.0_dp
 
@@ -82,9 +82,16 @@ contains
          beta_eff = beta_default
       end if
 
-      if (size(H, 1) /= L*(Nph + 1) .or. size(H, 2) /= L*(Nph + 1)) then
-         error stop "cavaa_hamiltonian: wrong H size"
+      if (L <= 0) then
+         error stop "cavaa_hamiltonian: L must be positive"
       end if
+
+      if (Nph < 0) then
+         error stop "cavaa_hamiltonian: Nph must be non-negative"
+      end if
+
+      dim = L*(Nph + 1)
+      allocate (H(dim, dim))
 
       call peierls_exp(PE, gam)
 
@@ -93,7 +100,7 @@ contains
       ! Diagonal
       do n = 0, Nph
          do i = 1, L
-            v_i = aa_onsite_potential(V, i, beta, phi)
+            v_i = aa_onsite_potential(V, i, beta_eff, phi)
             call cav_site_photon_to_index(i, n, L, full_i)
 
             H(full_i, full_i) = cmplx(v_i + real(n, kind=dp)*omega, kind=dp)
@@ -104,6 +111,7 @@ contains
       do n = 0, Nph
          do m = 0, Nph
             h_NM = PE(n, m)
+
             do i = 1, L - 1
                j = i + 1
                call cav_site_photon_to_index(i, n, L, full_i)
@@ -187,12 +195,12 @@ contains
       U = cmplx(-t, kind=dp)*U
 
       ! First site
-      call cavaa_slice_hamiltonian(h_n, 1, V, beta, phi, omega)
+      call cavaa_slice_hamiltonian(h_n, 1, V, beta_eff, phi, omega)
       call rgf_first_step(cE, h_n, U_01, g_L, G_nm1_nm1, G_0_nm1)
 
       ! Internal sites: 2, ..., Lx
       do n = 2, Lx
-         call cavaa_slice_hamiltonian(h_n, n, V, beta, phi, omega)
+         call cavaa_slice_hamiltonian(h_n, n, V, beta_eff, phi, omega)
          call rgf_step(cE, h_n, U, G_nm1_nm1, G_0_nm1, G_n_n, G_0_n)
          G_nm1_nm1 = G_n_n
          G_0_nm1 = G_0_n

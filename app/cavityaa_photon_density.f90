@@ -4,6 +4,7 @@ program main
    use array_io
    use aubry_andre
    use matrix_operations, only: diagonalize
+   use stdlib_io_npy, only: save_npy
    implicit none
 
    character(len=256) :: outname
