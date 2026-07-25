@@ -1,10 +1,9 @@
 program main
    use stdlib_kinds, only: dp
-   use rng_utils
-   use array_io
-   use aubry_andre
-   use matrix_operations, only: diagonalize
    use stdlib_io_npy, only: save_npy
+   use rng_utils
+   use aubry_andre, only: cavaa_hamiltonian, photon_probability
+   use matrix_operations, only: diagonalize
    implicit none
 
    character(len=256) :: outname
@@ -33,19 +32,8 @@ program main
    call diagonalize(H, egv)
    call photon_probability(Pph, H, L, Nph)
 
-   call save_array_bin("energies_"//trim(outname)//".bin", egv)
-   call save_array_bin("photon_prob_"//trim(outname)//".bin", Pph)
-
-   ! call save_array_2d("hamiltonian_re.txt", H%re)
-   ! call save_array_2d("hamiltonian_im.txt", H%im)
-   ! allocate (energies(NEpoints))
-   ! allocate (phis(Ndisorder))
-   ! allocate (transmissions(NLpoints, NEpoints, Ndisorder))
-
-   ! energy_grid(Egrid=energies, Emin=Emin, Emax=Emax)
-   ! call aa_random_phases(phis)
-
-   deallocate (H, egv, Pph)
+   call save_npy("energies_"//trim(outname)//".npy", egv)
+   call save_npy("photon_prob_"//trim(outname)//".npy", Pph)
 
 contains
 

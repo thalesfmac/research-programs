@@ -1,8 +1,8 @@
 program main
    use stdlib_kinds, only: dp
+   use stdlib_io_npy, only: save_npy
    use rng_utils
-   use array_io
-   use aubry_andre
+   use aubry_andre, only: energy_grid, aa_random_phases, cavaa_rgf_transmission
    implicit none
 
    character(len=256) :: outname
@@ -53,14 +53,8 @@ program main
       write (*, *) (100*i + NEpoints/2)/NEpoints, "done: Energy =", energies(i)
    end do
 
-   ! call save_array_1d("energies_" // trim(outname) // ".dat", energies)
-   ! call save_array_2d("transmissions_" // trim(outname) // ".dat", transmissions)
-   ! call save_array_bin("transmissions_" // trim(outname) // ".bin", transmissions)
-
-   call save_array_bin("transmissions_"//trim(outname)//".bin", transmissions)
-   call save_array_bin("energies_"//trim(outname)//".bin", energies)
-
-   deallocate (energies, phis, transmissions)
+   call save_npy("transmissions_"//trim(outname)//".npy", transmissions)
+   call save_npy("energies_"//trim(outname)//".npy", energies)
 
 contains
 

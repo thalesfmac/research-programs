@@ -1,8 +1,9 @@
 program main
    use stdlib_kinds, only: dp
    use rng_utils
-   use array_io
-   use aubry_andre
+   use array_io, only: geomspace_int
+   use aubry_andre, only: aa_random_phases, energy_grid, cavaa_rgf_transmission
+   use stdlib_io_npy, only: save_npy
    implicit none
 
    character(len=256) :: outname
@@ -11,8 +12,8 @@ program main
    real(dp) :: tcS, tcD, tlead, muS, muD
    real(dp) :: omega, g
 
-   integer, allocatable :: lengths_int(:)
-   real(dp), allocatable :: energies(:), phis(:), lengths_real(:)
+   integer, allocatable :: lengths(:)
+   real(dp), allocatable :: energies(:), phis(:)
    real(dp), allocatable :: transmissions(:, :, :)
    real(dp) :: Emin, Emax
    integer :: Lmin, Lmax
@@ -24,8 +25,7 @@ program main
 
    call readInput()
 
-   lengths_int = geomspace_int(start=Lmin, stop=Lmax, num=NLpoints)
-   lengths_real = real(lengths_int, dp)
+   lengths = geomspace_int(start=Lmin, stop=Lmax, num=NLpoints)
 
    call writeInput("parameters_"//trim(outname)//".txt")
 
@@ -44,7 +44,7 @@ program main
             transmissions(k, i, j) = cavaa_rgf_transmission( &
                                      E=energies(i), &
                                      eta=ETA, &
-                                     Lx=lengths_int(k), &
+                                     Lx=lengths(k), &
                                      Nph=Nph, &
                                      t=t, &
                                      V=V, &
@@ -58,24 +58,13 @@ program main
                                      muR=muD)
          end do
 
-         write (*, *) "Done: L = ", lengths_int(k), "E = ", energies(i)
+         write (*, *) "Done: L = ", lengths(k), "E = ", energies(i)
       end do
    end do
 
-   call save_array_bin("transmissions_"//trim(outname)//".bin", transmissions)
-   call save_array_bin("energies_"//trim(outname)//".bin", energies)
-   call save_array_bin("lengths_"//trim(outname)//".bin", lengths_real)
-
-   ! call save_array_1d("energies_" // trim(outname) // ".dat", energies)
-   ! call save_array_1d("lengths_" // trim(outname) // ".dat", lengths_real)
-
-   ! do j = 1, Ndisorder
-   !     write(jstr, '(I4.4)') j
-
-   !     call save_array_2d("transmissions_" // trim(outname) // "_" // trim(jstr) //".dat", transmissions(:, :, j))
-   ! end do
-
-   deallocate (lengths_int, lengths_real, energies, phis, transmissions)
+   call save_npy("transmissions_"//trim(outname)//".npy", transmissions)
+   call save_npy("energies_"//trim(outname)//".npy", energies)
+   call save_npy("lengths_"//trim(outname)//".npy", lengths)
 
 contains
 

@@ -1,8 +1,8 @@
 program main
    use stdlib_kinds, only: dp
+   use stdlib_io_npy, only: save_npy
    use rng_utils
-   use array_io
-   use aubry_andre
+   use aubry_andre, only: aa_random_phases, cavaa_rgf_transmission
    implicit none
 
    character(len=256) :: outname
@@ -66,11 +66,8 @@ program main
       write (*, *) "Lx =", Lx
    end do
 
-   call save_array_1d("lengths_"//trim(outname)//".dat", lengths)
-   call save_array_2d("transmissions_"//trim(outname)//".dat", transmissions)
-
-   ! call save_array_bin("lengths_" // trim(outname) // ".bin", lengths)
-   ! call save_array_bin("transmissions_" // trim(outname) // ".bin", transmissions)
+   call save_npy("lengths_"//trim(outname)//".npy", lengths)
+   call save_npy("transmissions_"//trim(outname)//".npy", transmissions)
 
    deallocate (lengths, phis, transmissions)
 
