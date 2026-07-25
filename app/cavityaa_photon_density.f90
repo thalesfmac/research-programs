@@ -1,7 +1,6 @@
 program main
    use stdlib_kinds, only: dp
    use stdlib_io_npy, only: save_npy
-   use rng_utils
    use aubry_andre, only: cavaa_hamiltonian, photon_probability
    use matrix_operations, only: diagonalize
    implicit none
