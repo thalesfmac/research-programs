@@ -1,6 +1,5 @@
 program main
-   use precision, only: dp
-   use constants, only: INV_PHI
+   use stdlib_kinds, only: dp
    use rng_utils
    use array_io
    use aubry_andre
@@ -12,6 +11,7 @@ program main
    real(dp) :: t, V
    real(dp) :: gam, omega
    real(dp), parameter :: PHI = 0.0_dp
+   real(dp), parameter :: INV_PHI = (sqrt(5.0_dp) - 1.0_dp)/2.0_dp
 
    integer :: NN
    complex(dp), allocatable :: H(:, :)
@@ -28,7 +28,7 @@ program main
 
    allocate (H(NN, NN), egv(NN))
 
-   call cavaa_hamiltonian(H, L, Nph, t, V, INV_PHI, PHI, gam, omega)
+   call cavaa_hamiltonian(H, L, Nph, t, V, PHI, gam, omega)
    call diagonalize(H, egv)
    call photon_probability(Pph, H, L, Nph)
 

@@ -1,18 +1,17 @@
 module aubry_andre
-   use :: precision, only:dp
-   use :: constants, only:PI
-   use :: matrix_operations, only:identity_matrix, assert_square
-   use :: lead_green_function, only:surface_gf_1d, surface_self_energy_left, surface_self_energy_right, broadening
-   use :: peierls_operator, only:peierls_exp
-   use :: transmittance, only:caroli_transmission, rgf_first_step, rgf_step, rgf_last_step
+   use stdlib_kinds, only: dp
+   use matrix_operations, only: identity_matrix, assert_square
+   use lead_green_function, only: surface_gf_1d, surface_self_energy_left, surface_self_energy_right, broadening
+   use peierls_operator, only: peierls_exp
+   use transmittance, only: caroli_transmission, rgf_first_step, rgf_step, rgf_last_step
    implicit none
 
    private
-   public :: aa_random_phases
-   public :: aa_onsite_potential, cavaa_slice_hamiltonian
-   public :: cavaa_hamiltonian
-   public :: energy_grid, cavaa_rgf_transmission
-   public :: photon_probability
+   public aa_random_phases
+   public aa_onsite_potential, cavaa_slice_hamiltonian
+   public cavaa_hamiltonian
+   public energy_grid, cavaa_rgf_transmission
+   public photon_probability
 
 contains
 
@@ -34,6 +33,7 @@ contains
    end subroutine energy_grid
 
    subroutine aa_random_phases(phi_vals)
+      use stdlib_constants, only: PI => PI_dp
       real(dp), intent(out) :: phi_vals(:)
 
       call random_number(phi_vals)
@@ -41,6 +41,7 @@ contains
    end subroutine aa_random_phases
 
    function aa_onsite_potential(V, site, beta, phi) result(V_i)
+      use stdlib_constants, only: PI => PI_dp
       real(dp), intent(in) :: V, beta, phi
       integer, intent(in) :: site
       real(dp) :: V_i
@@ -63,14 +64,23 @@ contains
       site = mod(idx - 1, L) + 1
    end subroutine cav_index_to_site_photon
 
-   subroutine cavaa_hamiltonian(H, L, Nph, t, V, beta, phi, gam, omega)
+   subroutine cavaa_hamiltonian(H, L, Nph, t, V, phi, gam, omega, beta)
       complex(dp), intent(out) :: H(:, :)
       integer, intent(in) :: L, Nph
-      real(dp), intent(in) :: t, V, beta, phi, gam, omega
+      real(dp), intent(in) :: t, V, phi, gam, omega
+      real(dp), intent(in), optional :: beta
 
       complex(dp) :: PE(0:Nph, 0:Nph), h_NM
-      real(dp) :: v_i
+      real(dp) :: beta_eff, v_i
       integer :: i, j, n, m, full_i, full_j
+
+      real(dp), parameter :: beta_default = (sqrt(5.0_dp) - 1.0_dp)/2.0_dp
+
+      if (present(beta)) then
+         beta_eff = beta
+      else
+         beta_eff = beta_default
+      end if
 
       if (size(H, 1) /= L*(Nph + 1) .or. size(H, 2) /= L*(Nph + 1)) then
          error stop "cavaa_hamiltonian: wrong H size"

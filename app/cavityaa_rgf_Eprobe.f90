@@ -1,6 +1,5 @@
 program main
-   use precision, only: dp
-   use constants, only: INV_PHI
+   use stdlib_kinds, only: dp
    use rng_utils
    use array_io
    use aubry_andre
@@ -14,6 +13,7 @@ program main
 
    real(dp), allocatable :: energies(:), phis(:), transmissions(:, :)
    real(dp) :: Emin, Emax
+   real(dp), parameter :: INV_PHI = (sqrt(5.0_dp) - 1.0_dp)/2.0_dp
    real(dp), parameter :: ETA = 1.0e-10_dp
 
    integer :: i, j

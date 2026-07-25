@@ -1,12 +1,12 @@
 module transmittance
-   use :: precision, only:dp
-   use :: matrix_operations, only:invert, matmul3, matmul4
-   use :: stdlib_linalg, only:trace
+   use stdlib_kinds, only: dp
+   use matrix_operations, only: invert, matmul3, matmul4
+   use stdlib_linalg, only: trace
    implicit none
 
    private
-   public :: caroli_transmission
-   public :: rgf_first_step, rgf_step, rgf_last_step
+   public caroli_transmission
+   public rgf_first_step, rgf_step, rgf_last_step
 
 contains
 

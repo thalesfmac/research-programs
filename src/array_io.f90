@@ -1,10 +1,10 @@
 module array_io
-   use precision, only: dp
+   use stdlib_kinds, only: dp
    implicit none
 
    private
-   public :: save_array_1d, save_array_2d, save_array_bin
-   public :: arange_int, geomspace_int
+   public save_array_1d, save_array_2d, save_array_bin
+   public arange_int, geomspace_int
 
 contains
    subroutine save_array_1d(filename, A)

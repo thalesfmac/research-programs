@@ -1,6 +1,6 @@
 module matrix_operations
-   use :: precision, only:dp
-   use :: lapack_blas_interface
+   use stdlib_kinds, only: dp
+   use lapack_blas_interface
    implicit none
 
    private

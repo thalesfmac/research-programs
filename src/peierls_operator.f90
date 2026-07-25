@@ -1,9 +1,9 @@
 module peierls_operator
-   use :: precision, only:dp
+   use stdlib_kinds, only: dp
    implicit none
    private
 
-   public :: peierls_exp
+   public peierls_exp
 
 contains
 
@@ -37,9 +37,8 @@ contains
    end subroutine build_P
 
    subroutine peierls_exp(A, g)
-      use :: stdlib_error, only:check
-      use :: stdlib_linalg, only:is_square
-      use :: constants, only:CI
+      use stdlib_error, only: check
+      use stdlib_linalg, only: is_square
       complex(dp), intent(out) :: A(0:, 0:)
       real(dp), intent(in) :: g
 
@@ -49,6 +48,8 @@ contains
       integer :: M, N, s, j
       complex(dp) :: hNM
       real(dp) :: prefactor
+
+      complex(dp), parameter :: CI = (0.0_dp, 1.0_dp)
 
       call check(is_square(A), msg="peierls_exp: A must be a square matrix")
 
