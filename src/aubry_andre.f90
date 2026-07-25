@@ -135,11 +135,12 @@ contains
       end do
    end subroutine cavaa_slice_hamiltonian
 
-   function cavaa_rgf_transmission(E, eta, Lx, Nph, t, V, beta, phi, g, omega, tcL, tcR, tlead, muL, muR) result(tt)
+   function cavaa_rgf_transmission(E, eta, Lx, Nph, t, V, phi, g, omega, tcL, tcR, tlead, muL, muR, beta) result(tt)
       integer, intent(in) :: Lx, Nph
-      real(dp), intent(in) :: E, eta, t, V, beta, phi, g, omega
+      real(dp), intent(in) :: E, eta, t, V, phi, g, omega
       real(dp), intent(in) :: tcL, tcR, tlead, muL, muR
-      real(dp) :: tt
+      real(dp), intent(in), optional :: beta
+      real(dp) :: beta_eff, tt
 
       integer :: n
       complex(dp), dimension(0:Nph, 0:Nph) :: cE, h_n, U, G_nm1_nm1, G_n_n
@@ -148,6 +149,14 @@ contains
       complex(dp), dimension(0:0, 0:0) :: g_L, g_R, G_Np1_Np1, G_0_Np1
       complex(dp), dimension(0:0, 0:0) :: u_left, u_right
       complex(dp), dimension(0:0, 0:0) :: sigma_L, sigma_R, gamma_L, gamma_R
+
+      real(dp), parameter :: beta_default = (sqrt(5.0_dp) - 1.0_dp)/2.0_dp
+
+      if (present(beta)) then
+         beta_eff = beta
+      else
+         beta_eff = beta_default
+      end if
 
       ! Check if the system has more than 1 site
       if (Lx <= 1) then

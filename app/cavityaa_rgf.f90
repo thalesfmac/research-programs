@@ -48,7 +48,6 @@ program main
                                      Nph=Nph, &
                                      t=t, &
                                      V=V, &
-                                     beta=INV_PHI, &
                                      phi=phis(j), &
                                      g=g, &
                                      omega=omega, &
