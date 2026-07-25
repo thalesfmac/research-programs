@@ -65,6 +65,7 @@ program main
    call save_npy("transmissions_"//trim(outname)//".npy", transmissions)
    call save_npy("energies_"//trim(outname)//".npy", energies)
    call save_npy("lengths_"//trim(outname)//".npy", lengths)
+   call save_npy("aa_phases"//trim(outname)//".npy", phis)
 
 contains
 
