@@ -25,7 +25,7 @@ program main
 
    call readInput()
 
-   lengths = geomspace_int(start=Lmin, stop=Lmax, num=NLpoints)
+   lengths = geomspace_int(start=Lmin, stp=Lmax, num=NLpoints)
 
    call writeInput("parameters_"//trim(outname)//".txt")
 
