@@ -34,4 +34,5 @@
     },
     "git.autofetch": true,
     "git.confirmSync": false,
+    "editor.minimap.autohide": "mouseover",
 }
