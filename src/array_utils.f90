@@ -1,4 +1,4 @@
-module array_io
+module array_utils
    use stdlib_kinds, only: dp
    implicit none
    private
@@ -42,4 +42,4 @@ contains
 
    end function geomspace_int
 
-end module array_io
+end module array_utils

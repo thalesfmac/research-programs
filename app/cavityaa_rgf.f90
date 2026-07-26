@@ -5,7 +5,7 @@ program main
    use stdlib_constants, only: PI => PI_dp
    use stdlib_io_npy, only: save_npy
 
-   use array_io, only: geomspace_int
+   use array_utils, only: geomspace_int
    use aubry_andre, only: energy_grid, cavaa_rgf_transmission
    implicit none
 
