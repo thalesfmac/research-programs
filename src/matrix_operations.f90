@@ -4,10 +4,9 @@ module matrix_operations
    implicit none
 
    private
-   public :: identity_matrix, trace
-   public :: assert_square, assert_same_shape
-   public :: diagonalize, diagonalize_d
-   public :: matmul2, matmul3, matmul4
+   public assert_square, assert_same_shape
+   public diagonalize, diagonalize_d
+   public matmul2, matmul3, matmul4
 
    interface assert_square
       module procedure assert_square_cdp
@@ -108,31 +107,6 @@ contains
             "), expected same shape", caller)
       end if
    end subroutine assert_same_shape_rdp
-
-   subroutine identity_matrix(A)
-      complex(dp), intent(out), contiguous :: A(:, :)
-      integer :: i
-
-      call assert_square(A, "A", "identity_matrix")
-
-      A = (0.0_dp, 0.0_dp)
-      do i = 1, size(A, dim=1)
-         A(i, i) = (1.0_dp, 0.0_dp)
-      end do
-   end subroutine identity_matrix
-
-   function trace(A) result(retval)
-      complex(dp), intent(in) :: A(:, :)
-      complex(dp) :: retval
-      integer :: i
-
-      call assert_square(A, "A", "trace")
-
-      retval = (0.0_dp, 0.0_dp)
-      do i = 1, size(A, dim=1)
-         retval = retval + A(i, i)
-      end do
-   end function trace
 
    subroutine diagonalize(A, w, jobz, uplo)
       ! Diagonaliza Hermitiana complexa via ZHEEV.

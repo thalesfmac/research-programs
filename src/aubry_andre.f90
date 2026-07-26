@@ -1,7 +1,7 @@
 module aubry_andre
    use stdlib_kinds, only: dp
 
-   use matrix_operations, only: identity_matrix, assert_square
+   use matrix_operations, only: assert_square
    use lead_green_function, only: surface_gf_1d, surface_self_energy_left, surface_self_energy_right, broadening
    use peierls_operator, only: peierls_exp
    use transmittance, only: caroli_transmission, rgf_first_step, rgf_step, rgf_last_step
@@ -136,6 +136,7 @@ contains
    end subroutine cavaa_slice_hamiltonian
 
    function cavaa_rgf_transmission(E, eta, Lx, Nph, t, V, phi, g, omega, tcL, tcR, tlead, muL, muR, beta) result(tt)
+      use stdlib_linalg, only: eye
       integer, intent(in) :: Lx, Nph
       real(dp), intent(in) :: E, eta, t, V, phi, g, omega
       real(dp), intent(in) :: tcL, tcR, tlead, muL, muR
@@ -163,7 +164,7 @@ contains
          error stop "cavaa_rgf_transmission: Lx must be greater than 1"
       end if
 
-      call identity_matrix(cE)
+      cE = eye(size(cE, 1), mold=(0.0_dp, 0.0_dp))
       cE = cmplx(E, eta, kind=dp)*cE
 
       g_L(0, 0) = surface_gf_1d(E, tlead, muL)

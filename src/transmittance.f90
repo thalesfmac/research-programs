@@ -1,6 +1,6 @@
 module transmittance
    use stdlib_kinds, only: dp
-   use stdlib_linalg, only: invert, trace
+   use stdlib_linalg, only: invert
 
    use matrix_operations, only: matmul3, matmul4
    implicit none
@@ -12,6 +12,7 @@ module transmittance
 contains
 
    function caroli_transmission(gf, Gamma_L, Gamma_R) result(T)
+      use stdlib_linalg, only: trace
       complex(dp), dimension(:, :), intent(in), contiguous :: gf, Gamma_L, Gamma_R
       real(dp) :: T
 
