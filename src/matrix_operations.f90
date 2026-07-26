@@ -1,18 +1,14 @@
 module matrix_operations
-   use :: precision, only:dp
-   use :: lapack_blas_interface
+   use stdlib_kinds, only: dp
+   use stdlib_error, only: check
+   use stdlib_linalg, only: is_square
+
+   use lapack_blas_interface
    implicit none
-
    private
-   public :: identity_matrix, trace
-   public :: assert_square, assert_same_shape
-   public :: diagonalize, diagonalize_d, invert
-   public :: matmul2, matmul3, matmul4
 
-   interface assert_square
-      module procedure assert_square_cdp
-      module procedure assert_square_rdp
-   end interface
+   public assert_same_shape
+   public matmul2, matmul3, matmul4
 
    interface assert_same_shape
       module procedure assert_same_shape_cdp
@@ -40,38 +36,6 @@ contains
       write (srow, '(I0)') nrow
       write (scol, '(I0)') ncol
    end subroutine shape_to_strings
-
-   subroutine assert_square_cdp(A, name, caller)
-      complex(dp), intent(in) :: A(:, :)
-      character(len=*), intent(in) :: name
-      character(len=*), intent(in), optional :: caller
-
-      character(len=32) :: n1, n2
-
-      if (size(A, 1) /= size(A, 2)) then
-         call shape_to_strings(size(A, 1), size(A, 2), n1, n2)
-         error stop with_caller( &
-            trim(name)//" must be square, got shape ("// &
-            trim(n1)//","//trim(n2)//")", caller &
-            )
-      end if
-   end subroutine assert_square_cdp
-
-   subroutine assert_square_rdp(A, name, caller)
-      real(dp), intent(in) :: A(:, :)
-      character(len=*), intent(in) :: name
-      character(len=*), intent(in), optional :: caller
-
-      character(len=32) :: n1, n2
-
-      if (size(A, 1) /= size(A, 2)) then
-         call shape_to_strings(size(A, 1), size(A, 2), n1, n2)
-         error stop with_caller( &
-            trim(name)//" must be square, got shape ("// &
-            trim(n1)//","//trim(n2)//")", caller &
-            )
-      end if
-   end subroutine assert_square_rdp
 
    subroutine assert_same_shape_cdp(A, B, nameA, nameB, caller)
       complex(dp), intent(in) :: A(:, :), B(:, :)
@@ -108,169 +72,6 @@ contains
             "), expected same shape", caller)
       end if
    end subroutine assert_same_shape_rdp
-
-   subroutine identity_matrix(A)
-      complex(dp), intent(out), contiguous :: A(:, :)
-      integer :: i
-
-      call assert_square(A, "A", "identity_matrix")
-
-      A = (0.0_dp, 0.0_dp)
-      do i = 1, size(A, dim=1)
-         A(i, i) = (1.0_dp, 0.0_dp)
-      end do
-   end subroutine identity_matrix
-
-   function trace(A) result(retval)
-      complex(dp), intent(in) :: A(:, :)
-      complex(dp) :: retval
-      integer :: i
-
-      call assert_square(A, "A", "trace")
-
-      retval = (0.0_dp, 0.0_dp)
-      do i = 1, size(A, dim=1)
-         retval = retval + A(i, i)
-      end do
-   end function trace
-
-   subroutine diagonalize(A, w, jobz, uplo)
-      ! Diagonaliza Hermitiana complexa via ZHEEV.
-      complex(dp), intent(inout), contiguous :: A(:, :)
-      real(dp), intent(out) :: w(:)
-      character(len=1), intent(in), optional :: jobz, uplo
-
-      character(len=1) :: jobz_loc, uplo_loc
-      integer :: n, lda, info, lwork
-      complex(dp), allocatable :: work(:)
-      real(dp), allocatable :: rwork(:)
-      complex(dp) :: workq(1)
-
-      jobz_loc = 'V'; if (present(jobz)) jobz_loc = jobz
-      uplo_loc = 'U'; if (present(uplo)) uplo_loc = uplo
-
-      call assert_square(A, "A", caller="diagonalize")
-
-      n = size(A, 1)
-      if (size(w) /= n) error stop "diagonalize: w must have length n of A"
-      lda = n
-
-      allocate (rwork(max(1, 3*n - 2)))
-
-      ! Workspace query
-      lwork = -1
-      call zheev(jobz_loc, uplo_loc, n, A, lda, w, workq, lwork, rwork, info)
-      if (info /= 0) then
-         deallocate (rwork)
-         error stop "diagonalize: ZHEEV workspace query failed"
-      end if
-
-      lwork = int(real(workq(1), dp))
-      if (lwork < 1) lwork = 1
-      allocate (work(lwork))
-
-      ! Diagonalização
-      call zheev(jobz_loc, uplo_loc, n, A, lda, w, work, lwork, rwork, info)
-
-      deallocate (work, rwork)
-      if (info /= 0) error stop "diagonalize: ZHEEV failed"
-   end subroutine diagonalize
-
-   subroutine diagonalize_d(A, w, jobz, uplo)
-      ! Diagonaliza matriz Hermitiana complexa via ZHEEVD.
-      complex(dp), intent(inout), contiguous :: A(:, :)
-      real(dp), intent(out) :: w(:)
-      character(len=1), intent(in), optional :: jobz, uplo
-
-      character(len=1) :: jobz_loc, uplo_loc
-      integer :: n, lda, info
-      integer :: lwork, lrwork, liwork
-
-      complex(dp), allocatable :: work(:)
-      real(dp), allocatable :: rwork(:)
-      integer, allocatable :: iwork(:)
-
-      complex(dp) :: workq(1)
-      real(dp) :: rworkq(1)
-      integer :: iworkq(1)
-
-      jobz_loc = 'V'
-      if (present(jobz)) jobz_loc = jobz
-
-      uplo_loc = 'U'
-      if (present(uplo)) uplo_loc = uplo
-
-      call assert_square(A, "A", caller="diagonalize_d")
-
-      n = size(A, 1)
-
-      if (size(w) /= n) then
-         error stop "diagonalize_d: w must have length n of A"
-      end if
-
-      lda = max(1, n)
-
-      ! Consulta dos tamanhos ótimos dos workspaces.
-      lwork = -1
-      lrwork = -1
-      liwork = -1
-
-      call zheevd(jobz_loc, uplo_loc, n, A, lda, w, workq, lwork, rworkq, lrwork, iworkq, liwork, info)
-
-      if (info /= 0) then
-         error stop "diagonalize_d: ZHEEVD workspace query failed"
-      end if
-
-      lwork = max(1, int(real(workq(1), kind=dp)))
-      lrwork = max(1, int(rworkq(1)))
-      liwork = max(1, iworkq(1))
-
-      allocate (work(lwork))
-      allocate (rwork(lrwork))
-      allocate (iwork(liwork))
-
-      ! Diagonalização.
-      call zheevd(jobz_loc, uplo_loc, n, A, lda, w, work, lwork, rwork, lrwork, iwork, liwork, info)
-
-      deallocate (work, rwork, iwork)
-
-      if (info < 0) then
-         error stop "diagonalize_d: ZHEEVD received an invalid argument"
-      else if (info > 0) then
-         error stop "diagonalize_d: ZHEEVD failed to converge"
-      end if
-   end subroutine diagonalize_d
-
-   subroutine invert(A)
-      complex(dp), intent(inout), contiguous :: A(:, :)
-      integer :: n, info, lwork
-      integer, allocatable :: ipiv(:)
-      complex(dp), allocatable :: work(:)
-
-      call assert_square(A, "A", caller="invert")
-
-      n = size(A, 1)
-      if (size(A, 2) /= n) error stop "invert: A must be square"
-
-      allocate (ipiv(n))
-
-      call zgetrf(n, n, A, n, ipiv, info)
-      if (info /= 0) error stop "invert: ZGETRF failed"
-
-      ! workspace query
-      lwork = -1
-      allocate (work(1))
-      call zgetri(n, A, n, ipiv, work, lwork, info)
-      if (info /= 0) error stop "invert: ZGETRI workspace query failed"
-      lwork = int(real(work(1), dp))
-      deallocate (work)
-
-      allocate (work(max(1, lwork)))
-      call zgetri(n, A, n, ipiv, work, lwork, info)
-      if (info /= 0) error stop "invert: ZGETRI failed"
-
-      deallocate (work, ipiv)
-   end subroutine invert
 
    subroutine op_shape(X, trans, nrow, ncol)
       complex(dp), intent(in) :: X(:, :)

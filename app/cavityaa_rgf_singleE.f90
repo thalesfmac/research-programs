@@ -1,19 +1,23 @@
 program main
-   use precision, only: dp
-   use constants, only: INV_PHI
-   use rng_utils
-   use array_io
-   use aubry_andre
+   use stdlib_kinds, only: dp
+   use stdlib_random, only: random_seed
+   use stdlib_stats_distribution_uniform, only: rvs_uniform
+   use stdlib_constants, only: PI => PI_dp
+   use stdlib_io_npy, only: save_npy
+
+   use aubry_andre, only: cavaa_rgf_transmission
    implicit none
 
    character(len=256) :: outname
-   integer :: Lx, Lmin, Lmax, NL, Nph, seed, Ndisorder
+   integer :: seed, actual_seed
+   integer :: Lx, Lmin, Lmax, NL, Nph, Ndisorder
    real(dp) :: t, V
    real(dp) :: tcS, tcD, tlead, muS, muD
    real(dp) :: omega, g
    real(dp) :: E
 
    real(dp), allocatable :: lengths(:), phis(:), transmissions(:, :)
+   real(dp), parameter :: INV_PHI = (sqrt(5.0_dp) - 1.0_dp)/2.0_dp
    real(dp), parameter :: ETA = 1.0e-10_dp
 
    integer :: i, j
@@ -33,13 +37,12 @@ program main
 
    call writeInput("parameters_"//trim(outname)//".txt")
 
-   call rng_initialize(seed)
+   call random_seed(put=seed, get=actual_seed)
 
    allocate (lengths(NL))
-   allocate (phis(Ndisorder))
    allocate (transmissions(NL, Ndisorder))
 
-   call aa_random_phases(phis)
+   phis = rvs_uniform(loc=0.0_dp, scale=2.0_dp*PI, array_size=Ndisorder)
 
    do i = 1, NL
       Lx = Lmin + i - 1
@@ -53,7 +56,6 @@ program main
                                Nph=Nph, &
                                t=t, &
                                V=V, &
-                               beta=INV_PHI, &
                                phi=phis(j), &
                                g=g, &
                                omega=omega, &
@@ -67,11 +69,9 @@ program main
       write (*, *) "Lx =", Lx
    end do
 
-   call save_array_1d("lengths_"//trim(outname)//".dat", lengths)
-   call save_array_2d("transmissions_"//trim(outname)//".dat", transmissions)
-
-   ! call save_array_bin("lengths_" // trim(outname) // ".bin", lengths)
-   ! call save_array_bin("transmissions_" // trim(outname) // ".bin", transmissions)
+   call save_npy("lengths_"//trim(outname)//".npy", lengths)
+   call save_npy("aa_phases_"//trim(outname)//".npy", phis)
+   call save_npy("transmissions_"//trim(outname)//".npy", transmissions)
 
    deallocate (lengths, phis, transmissions)
 

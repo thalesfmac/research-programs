@@ -1,5 +1,6 @@
 {
     "recommendations": [
-        "fortran-lang.linter-gfortran"
+        "fortran-lang.linter-gfortran",
+        "tamasfe.even-better-toml"
     ]
 }

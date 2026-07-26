@@ -47,5 +47,5 @@
 *.bin
 *.txt
 
-# Makefile
-config.mk
+# Build directory
+/build/

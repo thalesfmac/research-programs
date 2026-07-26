@@ -1,19 +1,23 @@
 program main
-   use precision, only: dp
-   use constants, only: INV_PHI
-   use rng_utils
-   use array_io
-   use aubry_andre
+   use stdlib_kinds, only: dp
+   use stdlib_random, only: random_seed
+   use stdlib_stats_distribution_uniform, only: rvs_uniform
+   use stdlib_constants, only: PI => PI_dp
+   use stdlib_io_npy, only: save_npy
+
+   use aubry_andre, only: energy_grid, cavaa_rgf_transmission
    implicit none
 
    character(len=256) :: outname
-   integer :: Lx, Nph, seed, Ndisorder, NEpoints
+   integer :: seed, actual_seed
+   integer :: Lx, Nph, Ndisorder, NEpoints
    real(dp) :: t, V
    real(dp) :: tcS, tcD, tlead, muS, muD
    real(dp) :: omega, g
 
    real(dp), allocatable :: energies(:), phis(:), transmissions(:, :)
    real(dp) :: Emin, Emax
+   real(dp), parameter :: INV_PHI = (sqrt(5.0_dp) - 1.0_dp)/2.0_dp
    real(dp), parameter :: ETA = 1.0e-10_dp
 
    integer :: i, j
@@ -22,14 +26,13 @@ program main
 
    call writeInput("parameters_"//trim(outname)//".txt")
 
-   call rng_initialize(seed)
+   call random_seed(put=seed, get=actual_seed)
 
    allocate (energies(NEpoints))
-   allocate (phis(Ndisorder))
    allocate (transmissions(NEpoints, Ndisorder))
 
    call energy_grid(Egrid=energies, Emin=Emin, Emax=Emax)
-   call aa_random_phases(phis)
+   phis = rvs_uniform(loc=0.0_dp, scale=2.0_dp*PI, array_size=Ndisorder)
 
    do i = 1, NEpoints
       do j = 1, Ndisorder
@@ -40,7 +43,6 @@ program main
                                Nph=Nph, &
                                t=t, &
                                V=V, &
-                               beta=INV_PHI, &
                                phi=phis(j), &
                                g=g, &
                                omega=omega, &
@@ -54,14 +56,9 @@ program main
       write (*, *) (100*i + NEpoints/2)/NEpoints, "done: Energy =", energies(i)
    end do
 
-   ! call save_array_1d("energies_" // trim(outname) // ".dat", energies)
-   ! call save_array_2d("transmissions_" // trim(outname) // ".dat", transmissions)
-   ! call save_array_bin("transmissions_" // trim(outname) // ".bin", transmissions)
-
-   call save_array_bin("transmissions_"//trim(outname)//".bin", transmissions)
-   call save_array_bin("energies_"//trim(outname)//".bin", energies)
-
-   deallocate (energies, phis, transmissions)
+   call save_npy("transmissions_"//trim(outname)//".npy", transmissions)
+   call save_npy("aa_phases_"//trim(outname)//".npy", phis)
+   call save_npy("energies_"//trim(outname)//".npy", energies)
 
 contains
 

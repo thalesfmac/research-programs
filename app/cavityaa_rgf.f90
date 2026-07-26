@@ -1,42 +1,42 @@
 program main
-   use precision, only: dp
-   use constants, only: INV_PHI
-   use rng_utils
-   use array_io
-   use aubry_andre
+   use stdlib_kinds, only: dp
+   use stdlib_random, only: random_seed
+   use stdlib_stats_distribution_uniform, only: rvs_uniform
+   use stdlib_constants, only: PI => PI_dp
+   use stdlib_io_npy, only: save_npy
+
+   use array_utils, only: geomspace_int
+   use aubry_andre, only: energy_grid, cavaa_rgf_transmission
    implicit none
 
    character(len=256) :: outname
-   integer :: Nph, seed, Ndisorder, NEpoints, NLpoints
+   integer :: seed, actual_seed
+   integer :: Nph, Ndisorder, NEpoints, NLpoints
    real(dp) :: t, V
    real(dp) :: tcS, tcD, tlead, muS, muD
    real(dp) :: omega, g
 
-   integer, allocatable :: lengths_int(:)
-   real(dp), allocatable :: energies(:), phis(:), lengths_real(:)
+   integer, allocatable :: lengths(:)
+   real(dp), allocatable :: energies(:), phis(:)
    real(dp), allocatable :: transmissions(:, :, :)
    real(dp) :: Emin, Emax
    integer :: Lmin, Lmax
    real(dp), parameter :: ETA = 1.0e-10_dp
 
    integer :: i, j, k
-   ! character(len=32) :: jstr
 
    call readInput()
 
-   lengths_int = geomspace_int(start=Lmin, stop=Lmax, num=NLpoints)
-   lengths_real = real(lengths_int, dp)
-
    call writeInput("parameters_"//trim(outname)//".txt")
 
-   call rng_initialize(seed)
+   call random_seed(put=seed, get=actual_seed)
 
    allocate (energies(NEpoints))
-   allocate (phis(Ndisorder))
    allocate (transmissions(NLpoints, NEpoints, Ndisorder))
 
+   lengths = geomspace_int(start=Lmin, stp=Lmax, num=NLpoints)
    call energy_grid(Egrid=energies, Emin=Emin, Emax=Emax)
-   call aa_random_phases(phis)
+   phis = rvs_uniform(loc=0.0_dp, scale=2.0_dp*PI, array_size=Ndisorder)
 
    do k = 1, NLpoints
       do i = 1, NEpoints
@@ -44,11 +44,10 @@ program main
             transmissions(k, i, j) = cavaa_rgf_transmission( &
                                      E=energies(i), &
                                      eta=ETA, &
-                                     Lx=lengths_int(k), &
+                                     Lx=lengths(k), &
                                      Nph=Nph, &
                                      t=t, &
                                      V=V, &
-                                     beta=INV_PHI, &
                                      phi=phis(j), &
                                      g=g, &
                                      omega=omega, &
@@ -59,24 +58,14 @@ program main
                                      muR=muD)
          end do
 
-         write (*, *) "Done: L = ", lengths_int(k), "E = ", energies(i)
+         write (*, *) "Done: L = ", lengths(k), "E = ", energies(i)
       end do
    end do
 
-   call save_array_bin("transmissions_"//trim(outname)//".bin", transmissions)
-   call save_array_bin("energies_"//trim(outname)//".bin", energies)
-   call save_array_bin("lengths_"//trim(outname)//".bin", lengths_real)
-
-   ! call save_array_1d("energies_" // trim(outname) // ".dat", energies)
-   ! call save_array_1d("lengths_" // trim(outname) // ".dat", lengths_real)
-
-   ! do j = 1, Ndisorder
-   !     write(jstr, '(I4.4)') j
-
-   !     call save_array_2d("transmissions_" // trim(outname) // "_" // trim(jstr) //".dat", transmissions(:, :, j))
-   ! end do
-
-   deallocate (lengths_int, lengths_real, energies, phis, transmissions)
+   call save_npy("transmissions_"//trim(outname)//".npy", transmissions)
+   call save_npy("energies_"//trim(outname)//".npy", energies)
+   call save_npy("lengths_"//trim(outname)//".npy", lengths)
+   call save_npy("aa_phases_"//trim(outname)//".npy", phis)
 
 contains
 
@@ -96,6 +85,8 @@ contains
    subroutine writeInput(filename)
       character(len=*), intent(in) :: filename
       integer :: unit
+
+      real(dp), parameter :: INV_PHI = (sqrt(5.0_dp) - 1.0_dp)/2.0_dp
 
       open (newunit=unit, file=filename, status="replace", action="write")
 

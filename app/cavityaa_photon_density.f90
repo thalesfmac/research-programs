@@ -1,10 +1,9 @@
 program main
-   use precision, only: dp
-   use constants, only: INV_PHI
-   use rng_utils
-   use array_io
-   use aubry_andre
-   use matrix_operations, only: diagonalize
+   use stdlib_kinds, only: dp
+   use stdlib_io_npy, only: save_npy
+   use stdlib_linalg, only: eigh
+
+   use aubry_andre, only: cavaa_hamiltonian, photon_probability
    implicit none
 
    character(len=256) :: outname
@@ -12,6 +11,7 @@ program main
    real(dp) :: t, V
    real(dp) :: gam, omega
    real(dp), parameter :: PHI = 0.0_dp
+   real(dp), parameter :: INV_PHI = (sqrt(5.0_dp) - 1.0_dp)/2.0_dp
 
    integer :: NN
    complex(dp), allocatable :: H(:, :)
@@ -21,30 +21,17 @@ program main
    call readInput()
 
    NN = L*(Nph + 1)
-   ! lengths_int = geomspace_int(start=Lmin, stop=Lmax, num=NLpoints)
-   ! lengths_real = real(lengths_int, dp)
 
    call writeInput("parameters_"//trim(outname)//".txt")
 
    allocate (H(NN, NN), egv(NN))
 
-   call cavaa_hamiltonian(H, L, Nph, t, V, INV_PHI, PHI, gam, omega)
-   call diagonalize(H, egv)
+   call cavaa_hamiltonian(H, L, Nph, t, V, PHI, gam, omega)
+   call eigh(H, egv, overwrite_a=.true.)
    call photon_probability(Pph, H, L, Nph)
 
-   call save_array_bin("energies_"//trim(outname)//".bin", egv)
-   call save_array_bin("photon_prob_"//trim(outname)//".bin", Pph)
-
-   ! call save_array_2d("hamiltonian_re.txt", H%re)
-   ! call save_array_2d("hamiltonian_im.txt", H%im)
-   ! allocate (energies(NEpoints))
-   ! allocate (phis(Ndisorder))
-   ! allocate (transmissions(NLpoints, NEpoints, Ndisorder))
-
-   ! energy_grid(Egrid=energies, Emin=Emin, Emax=Emax)
-   ! call aa_random_phases(phis)
-
-   deallocate (H, egv, Pph)
+   call save_npy("energies_"//trim(outname)//".npy", egv)
+   call save_npy("photon_prob_"//trim(outname)//".npy", Pph)
 
 contains
 

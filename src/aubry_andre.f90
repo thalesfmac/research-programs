@@ -1,18 +1,17 @@
 module aubry_andre
-   use :: precision, only:dp
-   use :: constants, only:PI, CI
-   use :: matrix_operations, only:identity_matrix, assert_square
-   use :: lead_green_function, only:surface_gf_1d, surface_self_energy_left, surface_self_energy_right, broadening
-   use :: peierls_operator, only:peierls_exp
-   use :: transmittance, only:caroli_transmission, rgf_first_step, rgf_step, rgf_last_step
+   use stdlib_kinds, only: dp
+
+   use lead_green_function, only: surface_gf_1d, surface_self_energy_left, surface_self_energy_right, broadening
+   use peierls_operator, only: peierls_exp
+   use transmittance, only: caroli_transmission
+   use recursive_green_function, only: rgf_first_step, rgf_step, rgf_last_step
    implicit none
 
    private
-   public :: aa_random_phases
-   public :: aa_onsite_potential, cavaa_slice_hamiltonian
-   public :: cavaa_hamiltonian
-   public :: energy_grid, cavaa_rgf_transmission
-   public :: photon_probability
+   public aa_onsite_potential, cavaa_slice_hamiltonian
+   public cavaa_hamiltonian
+   public energy_grid, cavaa_rgf_transmission
+   public photon_probability
 
 contains
 
@@ -33,14 +32,8 @@ contains
       end do
    end subroutine energy_grid
 
-   subroutine aa_random_phases(phi_vals)
-      real(dp), intent(out) :: phi_vals(:)
-
-      call random_number(phi_vals)
-      phi_vals = 2.0_dp*PI*phi_vals
-   end subroutine aa_random_phases
-
    function aa_onsite_potential(V, site, beta, phi) result(V_i)
+      use stdlib_constants, only: PI => PI_dp
       real(dp), intent(in) :: V, beta, phi
       integer, intent(in) :: site
       real(dp) :: V_i
@@ -63,18 +56,34 @@ contains
       site = mod(idx - 1, L) + 1
    end subroutine cav_index_to_site_photon
 
-   subroutine cavaa_hamiltonian(H, L, Nph, t, V, beta, phi, gam, omega)
-      complex(dp), intent(out) :: H(:, :)
+   subroutine cavaa_hamiltonian(H, L, Nph, t, V, phi, gam, omega, beta)
+      complex(dp), allocatable, intent(out) :: H(:, :)
       integer, intent(in) :: L, Nph
-      real(dp), intent(in) :: t, V, beta, phi, gam, omega
+      real(dp), intent(in) :: t, V, phi, gam, omega
+      real(dp), intent(in), optional :: beta
 
       complex(dp) :: PE(0:Nph, 0:Nph), h_NM
-      real(dp) :: v_i
-      integer :: i, j, n, m, full_i, full_j
+      real(dp) :: beta_eff, v_i
+      integer :: dim, i, j, n, m, full_i, full_j
 
-      if (size(H, 1) /= L*(Nph + 1) .or. size(H, 2) /= L*(Nph + 1)) then
-         error stop "cavaa_hamiltonian: wrong H size"
+      real(dp), parameter :: beta_default = (sqrt(5.0_dp) - 1.0_dp)/2.0_dp
+
+      if (present(beta)) then
+         beta_eff = beta
+      else
+         beta_eff = beta_default
       end if
+
+      if (L <= 0) then
+         error stop "cavaa_hamiltonian: L must be positive"
+      end if
+
+      if (Nph < 0) then
+         error stop "cavaa_hamiltonian: Nph must be non-negative"
+      end if
+
+      dim = L*(Nph + 1)
+      allocate (H(dim, dim))
 
       call peierls_exp(PE, gam)
 
@@ -83,7 +92,7 @@ contains
       ! Diagonal
       do n = 0, Nph
          do i = 1, L
-            v_i = aa_onsite_potential(V, i, beta, phi)
+            v_i = aa_onsite_potential(V, i, beta_eff, phi)
             call cav_site_photon_to_index(i, n, L, full_i)
 
             H(full_i, full_i) = cmplx(v_i + real(n, kind=dp)*omega, kind=dp)
@@ -94,6 +103,7 @@ contains
       do n = 0, Nph
          do m = 0, Nph
             h_NM = PE(n, m)
+
             do i = 1, L - 1
                j = i + 1
                call cav_site_photon_to_index(i, n, L, full_i)
@@ -107,6 +117,8 @@ contains
    end subroutine cavaa_hamiltonian
 
    subroutine cavaa_slice_hamiltonian(h_i, i, V, beta, phi, omega)
+      use stdlib_error, only: check
+      use stdlib_linalg, only: is_square
       integer, intent(in) :: i
       real(dp), intent(in) :: V, beta, phi, omega
       complex(dp), intent(out) :: h_i(0:, 0:)
@@ -114,7 +126,7 @@ contains
       integer :: Nph, n
       real(dp) :: V_i
 
-      call assert_square(h_i, "h_i", caller="cavaa_slice_hamiltonian")
+      call check(is_square(h_i), msg="cavaa_slice_hamiltonian: h_i must be a square matrix")
       Nph = ubound(h_i, dim=1)
 
       h_i = (0.0_dp, 0.0_dp)
@@ -125,11 +137,13 @@ contains
       end do
    end subroutine cavaa_slice_hamiltonian
 
-   function cavaa_rgf_transmission(E, eta, Lx, Nph, t, V, beta, phi, g, omega, tcL, tcR, tlead, muL, muR) result(tt)
+   function cavaa_rgf_transmission(E, eta, Lx, Nph, t, V, phi, g, omega, tcL, tcR, tlead, muL, muR, beta) result(tt)
+      use stdlib_linalg, only: eye
       integer, intent(in) :: Lx, Nph
-      real(dp), intent(in) :: E, eta, t, V, beta, phi, g, omega
+      real(dp), intent(in) :: E, eta, t, V, phi, g, omega
       real(dp), intent(in) :: tcL, tcR, tlead, muL, muR
-      real(dp) :: tt
+      real(dp), intent(in), optional :: beta
+      real(dp) :: beta_eff, tt
 
       integer :: n
       complex(dp), dimension(0:Nph, 0:Nph) :: cE, h_n, U, G_nm1_nm1, G_n_n
@@ -139,12 +153,20 @@ contains
       complex(dp), dimension(0:0, 0:0) :: u_left, u_right
       complex(dp), dimension(0:0, 0:0) :: sigma_L, sigma_R, gamma_L, gamma_R
 
+      real(dp), parameter :: beta_default = (sqrt(5.0_dp) - 1.0_dp)/2.0_dp
+
+      if (present(beta)) then
+         beta_eff = beta
+      else
+         beta_eff = beta_default
+      end if
+
       ! Check if the system has more than 1 site
       if (Lx <= 1) then
          error stop "cavaa_rgf_transmission: Lx must be greater than 1"
       end if
 
-      call identity_matrix(cE)
+      cE = eye(size(cE, 1), mold=(0.0_dp, 0.0_dp))
       cE = cmplx(E, eta, kind=dp)*cE
 
       g_L(0, 0) = surface_gf_1d(E, tlead, muL)
@@ -168,12 +190,12 @@ contains
       U = cmplx(-t, kind=dp)*U
 
       ! First site
-      call cavaa_slice_hamiltonian(h_n, 1, V, beta, phi, omega)
+      call cavaa_slice_hamiltonian(h_n, 1, V, beta_eff, phi, omega)
       call rgf_first_step(cE, h_n, U_01, g_L, G_nm1_nm1, G_0_nm1)
 
       ! Internal sites: 2, ..., Lx
       do n = 2, Lx
-         call cavaa_slice_hamiltonian(h_n, n, V, beta, phi, omega)
+         call cavaa_slice_hamiltonian(h_n, n, V, beta_eff, phi, omega)
          call rgf_step(cE, h_n, U, G_nm1_nm1, G_0_nm1, G_n_n, G_0_n)
          G_nm1_nm1 = G_n_n
          G_0_nm1 = G_0_n

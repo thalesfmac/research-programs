@@ -1,8 +1,15 @@
 {
     "fortran.linter.includePaths": [
         "/usr/include/hdf5/**",
-        "/usr/lib64/gfortran/modules/**"
+        "/usr/lib64/gfortran/modules/**",
+        "${workspaceFolder}/build/**",
+        "${workspaceFolder}/src/**",
     ],
+    "fortran.fortls.directories": [
+        "./src/**",
+        "./build/dependencies/**",
+    ],
+    "fortran.fortls.incrementalSync": false,
     "fortran.formatting.formatter": "fprettify",
     "fortran.formatting.findentArgs": [
         "--indent=3"
@@ -26,5 +33,6 @@
         ]
     },
     "git.autofetch": true,
-    "git.confirmSync": false
+    "git.confirmSync": false,
+    "editor.minimap.autohide": "mouseover",
 }
