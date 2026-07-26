@@ -18,13 +18,11 @@ contains
       real(dp) :: log_start, log_stop, delta_log
       integer :: i
 
-      call check(num < 0, msg="geomspace_int: num must be non-negative")
+      call check(num >= 0, "geomspace_int: num must be non-negative")
 
       allocate (values(num))
 
       if (num == 0) return
-
-      call check(start <= 0 .or. stp <= 0, msg="geomspace_int: start and stop must be positive")
 
       if (num == 1) then
          values(1) = start
