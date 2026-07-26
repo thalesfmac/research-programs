@@ -1,7 +1,6 @@
 module aubry_andre
    use stdlib_kinds, only: dp
 
-   use matrix_operations, only: assert_square
    use lead_green_function, only: surface_gf_1d, surface_self_energy_left, surface_self_energy_right, broadening
    use peierls_operator, only: peierls_exp
    use transmittance, only: caroli_transmission, rgf_first_step, rgf_step, rgf_last_step
@@ -117,6 +116,8 @@ contains
    end subroutine cavaa_hamiltonian
 
    subroutine cavaa_slice_hamiltonian(h_i, i, V, beta, phi, omega)
+      use stdlib_error, only: check
+      use stdlib_linalg, only: is_square
       integer, intent(in) :: i
       real(dp), intent(in) :: V, beta, phi, omega
       complex(dp), intent(out) :: h_i(0:, 0:)
@@ -124,7 +125,7 @@ contains
       integer :: Nph, n
       real(dp) :: V_i
 
-      call assert_square(h_i, "h_i", caller="cavaa_slice_hamiltonian")
+      call check(is_square(h_i), msg="cavaa_slice_hamiltonian: h_i must be a square matrix")
       Nph = ubound(h_i, dim=1)
 
       h_i = (0.0_dp, 0.0_dp)

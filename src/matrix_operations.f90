@@ -4,14 +4,9 @@ module matrix_operations
    implicit none
 
    private
-   public assert_square, assert_same_shape
+   public assert_same_shape
    public diagonalize, diagonalize_d
    public matmul2, matmul3, matmul4
-
-   interface assert_square
-      module procedure assert_square_cdp
-      module procedure assert_square_rdp
-   end interface
 
    interface assert_same_shape
       module procedure assert_same_shape_cdp
@@ -39,38 +34,6 @@ contains
       write (srow, '(I0)') nrow
       write (scol, '(I0)') ncol
    end subroutine shape_to_strings
-
-   subroutine assert_square_cdp(A, name, caller)
-      complex(dp), intent(in) :: A(:, :)
-      character(len=*), intent(in) :: name
-      character(len=*), intent(in), optional :: caller
-
-      character(len=32) :: n1, n2
-
-      if (size(A, 1) /= size(A, 2)) then
-         call shape_to_strings(size(A, 1), size(A, 2), n1, n2)
-         error stop with_caller( &
-            trim(name)//" must be square, got shape ("// &
-            trim(n1)//","//trim(n2)//")", caller &
-            )
-      end if
-   end subroutine assert_square_cdp
-
-   subroutine assert_square_rdp(A, name, caller)
-      real(dp), intent(in) :: A(:, :)
-      character(len=*), intent(in) :: name
-      character(len=*), intent(in), optional :: caller
-
-      character(len=32) :: n1, n2
-
-      if (size(A, 1) /= size(A, 2)) then
-         call shape_to_strings(size(A, 1), size(A, 2), n1, n2)
-         error stop with_caller( &
-            trim(name)//" must be square, got shape ("// &
-            trim(n1)//","//trim(n2)//")", caller &
-            )
-      end if
-   end subroutine assert_square_rdp
 
    subroutine assert_same_shape_cdp(A, B, nameA, nameB, caller)
       complex(dp), intent(in) :: A(:, :), B(:, :)
@@ -109,6 +72,8 @@ contains
    end subroutine assert_same_shape_rdp
 
    subroutine diagonalize(A, w, jobz, uplo)
+      use stdlib_error, only: check
+      use stdlib_linalg, only: is_square
       ! Diagonaliza Hermitiana complexa via ZHEEV.
       complex(dp), intent(inout), contiguous :: A(:, :)
       real(dp), intent(out) :: w(:)
@@ -123,7 +88,7 @@ contains
       jobz_loc = 'V'; if (present(jobz)) jobz_loc = jobz
       uplo_loc = 'U'; if (present(uplo)) uplo_loc = uplo
 
-      call assert_square(A, "A", caller="diagonalize")
+      call check(is_square(A), msg="diagonalize: A must be a square matrix")
 
       n = size(A, 1)
       if (size(w) /= n) error stop "diagonalize: w must have length n of A"
@@ -151,6 +116,8 @@ contains
    end subroutine diagonalize
 
    subroutine diagonalize_d(A, w, jobz, uplo)
+      use stdlib_error, only: check
+      use stdlib_linalg, only: is_square
       ! Diagonaliza matriz Hermitiana complexa via ZHEEVD.
       complex(dp), intent(inout), contiguous :: A(:, :)
       real(dp), intent(out) :: w(:)
@@ -174,7 +141,7 @@ contains
       uplo_loc = 'U'
       if (present(uplo)) uplo_loc = uplo
 
-      call assert_square(A, "A", caller="diagonalize_d")
+      call check(is_square(A), msg="diagonalize_d: A must be a square matrix")
 
       n = size(A, 1)
 
