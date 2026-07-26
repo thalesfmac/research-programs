@@ -6,7 +6,7 @@ module matrix_operations
    private
    public :: identity_matrix, trace
    public :: assert_square, assert_same_shape
-   public :: diagonalize, diagonalize_d, invert
+   public :: diagonalize, diagonalize_d
    public :: matmul2, matmul3, matmul4
 
    interface assert_square
@@ -240,37 +240,6 @@ contains
          error stop "diagonalize_d: ZHEEVD failed to converge"
       end if
    end subroutine diagonalize_d
-
-   subroutine invert(A)
-      complex(dp), intent(inout), contiguous :: A(:, :)
-      integer :: n, info, lwork
-      integer, allocatable :: ipiv(:)
-      complex(dp), allocatable :: work(:)
-
-      call assert_square(A, "A", caller="invert")
-
-      n = size(A, 1)
-      if (size(A, 2) /= n) error stop "invert: A must be square"
-
-      allocate (ipiv(n))
-
-      call zgetrf(n, n, A, n, ipiv, info)
-      if (info /= 0) error stop "invert: ZGETRF failed"
-
-      ! workspace query
-      lwork = -1
-      allocate (work(1))
-      call zgetri(n, A, n, ipiv, work, lwork, info)
-      if (info /= 0) error stop "invert: ZGETRI workspace query failed"
-      lwork = int(real(work(1), dp))
-      deallocate (work)
-
-      allocate (work(max(1, lwork)))
-      call zgetri(n, A, n, ipiv, work, lwork, info)
-      if (info /= 0) error stop "invert: ZGETRI failed"
-
-      deallocate (work, ipiv)
-   end subroutine invert
 
    subroutine op_shape(X, trans, nrow, ncol)
       complex(dp), intent(in) :: X(:, :)
