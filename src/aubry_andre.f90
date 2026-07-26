@@ -3,7 +3,8 @@ module aubry_andre
 
    use lead_green_function, only: surface_gf_1d, surface_self_energy_left, surface_self_energy_right, broadening
    use peierls_operator, only: peierls_exp
-   use transmittance, only: caroli_transmission, rgf_first_step, rgf_step, rgf_last_step
+   use transmittance, only: caroli_transmission
+   use recursive_green_function, only: rgf_first_step, rgf_step, rgf_last_step
    implicit none
 
    private
