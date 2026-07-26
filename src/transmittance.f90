@@ -2,7 +2,7 @@ module transmittance
    use stdlib_kinds, only: dp
    use stdlib_linalg, only: invert
 
-   use matrix_operations, only: matmul3, matmul4
+   use matrix_operations, only: matmul4
    implicit none
 
    private
