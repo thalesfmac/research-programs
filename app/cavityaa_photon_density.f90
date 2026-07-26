@@ -1,8 +1,9 @@
 program main
    use stdlib_kinds, only: dp
    use stdlib_io_npy, only: save_npy
+   use stdlib_linalg, only: eigh
+
    use aubry_andre, only: cavaa_hamiltonian, photon_probability
-   use matrix_operations, only: diagonalize
    implicit none
 
    character(len=256) :: outname
@@ -20,15 +21,13 @@ program main
    call readInput()
 
    NN = L*(Nph + 1)
-   ! lengths_int = geomspace_int(start=Lmin, stop=Lmax, num=NLpoints)
-   ! lengths_real = real(lengths_int, dp)
 
    call writeInput("parameters_"//trim(outname)//".txt")
 
    allocate (H(NN, NN), egv(NN))
 
    call cavaa_hamiltonian(H, L, Nph, t, V, PHI, gam, omega)
-   call diagonalize(H, egv)
+   call eigh(H, egv, overwrite_a=.true.)
    call photon_probability(Pph, H, L, Nph)
 
    call save_npy("energies_"//trim(outname)//".npy", egv)

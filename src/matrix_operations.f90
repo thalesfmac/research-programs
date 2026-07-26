@@ -1,11 +1,13 @@
 module matrix_operations
    use stdlib_kinds, only: dp
+   use stdlib_error, only: check
+   use stdlib_linalg, only: is_square
+
    use lapack_blas_interface
    implicit none
-
    private
+
    public assert_same_shape
-   public diagonalize, diagonalize_d
    public matmul2, matmul3, matmul4
 
    interface assert_same_shape
@@ -70,117 +72,6 @@ contains
             "), expected same shape", caller)
       end if
    end subroutine assert_same_shape_rdp
-
-   subroutine diagonalize(A, w, jobz, uplo)
-      use stdlib_error, only: check
-      use stdlib_linalg, only: is_square
-      ! Diagonaliza Hermitiana complexa via ZHEEV.
-      complex(dp), intent(inout), contiguous :: A(:, :)
-      real(dp), intent(out) :: w(:)
-      character(len=1), intent(in), optional :: jobz, uplo
-
-      character(len=1) :: jobz_loc, uplo_loc
-      integer :: n, lda, info, lwork
-      complex(dp), allocatable :: work(:)
-      real(dp), allocatable :: rwork(:)
-      complex(dp) :: workq(1)
-
-      jobz_loc = 'V'; if (present(jobz)) jobz_loc = jobz
-      uplo_loc = 'U'; if (present(uplo)) uplo_loc = uplo
-
-      call check(is_square(A), msg="diagonalize: A must be a square matrix")
-
-      n = size(A, 1)
-      if (size(w) /= n) error stop "diagonalize: w must have length n of A"
-      lda = n
-
-      allocate (rwork(max(1, 3*n - 2)))
-
-      ! Workspace query
-      lwork = -1
-      call zheev(jobz_loc, uplo_loc, n, A, lda, w, workq, lwork, rwork, info)
-      if (info /= 0) then
-         deallocate (rwork)
-         error stop "diagonalize: ZHEEV workspace query failed"
-      end if
-
-      lwork = int(real(workq(1), dp))
-      if (lwork < 1) lwork = 1
-      allocate (work(lwork))
-
-      ! Diagonalização
-      call zheev(jobz_loc, uplo_loc, n, A, lda, w, work, lwork, rwork, info)
-
-      deallocate (work, rwork)
-      if (info /= 0) error stop "diagonalize: ZHEEV failed"
-   end subroutine diagonalize
-
-   subroutine diagonalize_d(A, w, jobz, uplo)
-      use stdlib_error, only: check
-      use stdlib_linalg, only: is_square
-      ! Diagonaliza matriz Hermitiana complexa via ZHEEVD.
-      complex(dp), intent(inout), contiguous :: A(:, :)
-      real(dp), intent(out) :: w(:)
-      character(len=1), intent(in), optional :: jobz, uplo
-
-      character(len=1) :: jobz_loc, uplo_loc
-      integer :: n, lda, info
-      integer :: lwork, lrwork, liwork
-
-      complex(dp), allocatable :: work(:)
-      real(dp), allocatable :: rwork(:)
-      integer, allocatable :: iwork(:)
-
-      complex(dp) :: workq(1)
-      real(dp) :: rworkq(1)
-      integer :: iworkq(1)
-
-      jobz_loc = 'V'
-      if (present(jobz)) jobz_loc = jobz
-
-      uplo_loc = 'U'
-      if (present(uplo)) uplo_loc = uplo
-
-      call check(is_square(A), msg="diagonalize_d: A must be a square matrix")
-
-      n = size(A, 1)
-
-      if (size(w) /= n) then
-         error stop "diagonalize_d: w must have length n of A"
-      end if
-
-      lda = max(1, n)
-
-      ! Consulta dos tamanhos ótimos dos workspaces.
-      lwork = -1
-      lrwork = -1
-      liwork = -1
-
-      call zheevd(jobz_loc, uplo_loc, n, A, lda, w, workq, lwork, rworkq, lrwork, iworkq, liwork, info)
-
-      if (info /= 0) then
-         error stop "diagonalize_d: ZHEEVD workspace query failed"
-      end if
-
-      lwork = max(1, int(real(workq(1), kind=dp)))
-      lrwork = max(1, int(rworkq(1)))
-      liwork = max(1, iworkq(1))
-
-      allocate (work(lwork))
-      allocate (rwork(lrwork))
-      allocate (iwork(liwork))
-
-      ! Diagonalização.
-      call zheevd(jobz_loc, uplo_loc, n, A, lda, w, work, lwork, rwork, lrwork, iwork, liwork, info)
-
-      deallocate (work, rwork, iwork)
-
-      if (info < 0) then
-         error stop "diagonalize_d: ZHEEVD received an invalid argument"
-      else if (info > 0) then
-         error stop "diagonalize_d: ZHEEVD failed to converge"
-      end if
-   end subroutine diagonalize_d
 
    subroutine op_shape(X, trans, nrow, ncol)
       complex(dp), intent(in) :: X(:, :)
