@@ -25,8 +25,6 @@ program main
 
    call readInput()
 
-   lengths = geomspace_int(start=Lmin, stp=Lmax, num=NLpoints)
-
    call writeInput("parameters_"//trim(outname)//".txt")
 
    call rng_initialize(seed)
@@ -35,6 +33,7 @@ program main
    allocate (phis(Ndisorder))
    allocate (transmissions(NLpoints, NEpoints, Ndisorder))
 
+   lengths = geomspace_int(start=Lmin, stp=Lmax, num=NLpoints)
    call energy_grid(Egrid=energies, Emin=Emin, Emax=Emax)
    call aa_random_phases(phis)
 
@@ -65,7 +64,7 @@ program main
    call save_npy("transmissions_"//trim(outname)//".npy", transmissions)
    call save_npy("energies_"//trim(outname)//".npy", energies)
    call save_npy("lengths_"//trim(outname)//".npy", lengths)
-   call save_npy("aa_phases"//trim(outname)//".npy", phis)
+   call save_npy("aa_phases_"//trim(outname)//".npy", phis)
 
 contains
 
