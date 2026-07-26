@@ -16,10 +16,22 @@ implicit-typing = false
 implicit-external = false
 source-form = "free"
 
+[features]
+debug.gfortran.flags = "-Og -Wall -Wextra -g -fcheck=all -fbacktrace"
+debug.ifort.flags = "-O0 -warn all -traceback -check all -diag-disable=10448"
+
+release.gfortran.flags = "-O2"
+release.ifort.flags = "-O2 -diag-disable=10448"
+
+[profiles]
+debug = ["debug"]
+release = ["release"]
+
 [library]
 source-dir = "src"
 
 [dependencies]
+blas = "*"
 stdlib = "*"
 
 [[test]]
