@@ -1,12 +1,16 @@
 program main
    use stdlib_kinds, only: dp
+   use stdlib_random, only: random_seed
+   use stdlib_stats_distribution_uniform, only: rvs_uniform
+   use stdlib_constants, only: PI => PI_dp
    use stdlib_io_npy, only: save_npy
-   use rng_utils
-   use aubry_andre, only: aa_random_phases, cavaa_rgf_transmission
+
+   use aubry_andre, only: cavaa_rgf_transmission
    implicit none
 
    character(len=256) :: outname
-   integer :: Lx, Lmin, Lmax, NL, Nph, seed, Ndisorder
+   integer :: seed, actual_seed
+   integer :: Lx, Lmin, Lmax, NL, Nph, Ndisorder
    real(dp) :: t, V
    real(dp) :: tcS, tcD, tlead, muS, muD
    real(dp) :: omega, g
@@ -33,13 +37,12 @@ program main
 
    call writeInput("parameters_"//trim(outname)//".txt")
 
-   call rng_initialize(seed)
+   call random_seed(put=seed, get=actual_seed)
 
    allocate (lengths(NL))
-   allocate (phis(Ndisorder))
    allocate (transmissions(NL, Ndisorder))
 
-   call aa_random_phases(phis)
+   phis = rvs_uniform(loc=0.0_dp, scale=2.0_dp*PI, array_size=Ndisorder)
 
    do i = 1, NL
       Lx = Lmin + i - 1

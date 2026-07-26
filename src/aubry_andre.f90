@@ -1,5 +1,6 @@
 module aubry_andre
    use stdlib_kinds, only: dp
+
    use matrix_operations, only: identity_matrix, assert_square
    use lead_green_function, only: surface_gf_1d, surface_self_energy_left, surface_self_energy_right, broadening
    use peierls_operator, only: peierls_exp
@@ -7,7 +8,6 @@ module aubry_andre
    implicit none
 
    private
-   public aa_random_phases
    public aa_onsite_potential, cavaa_slice_hamiltonian
    public cavaa_hamiltonian
    public energy_grid, cavaa_rgf_transmission
@@ -31,14 +31,6 @@ contains
          Egrid(i) = Emin + real(i, dp)*dE
       end do
    end subroutine energy_grid
-
-   subroutine aa_random_phases(phi_vals)
-      use stdlib_constants, only: PI => PI_dp
-      real(dp), intent(out) :: phi_vals(:)
-
-      call random_number(phi_vals)
-      phi_vals = 2.0_dp*PI*phi_vals
-   end subroutine aa_random_phases
 
    function aa_onsite_potential(V, site, beta, phi) result(V_i)
       use stdlib_constants, only: PI => PI_dp

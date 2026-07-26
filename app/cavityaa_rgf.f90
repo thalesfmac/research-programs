@@ -1,13 +1,17 @@
 program main
    use stdlib_kinds, only: dp
-   use rng_utils
-   use array_io, only: geomspace_int
-   use aubry_andre, only: aa_random_phases, energy_grid, cavaa_rgf_transmission
+   use stdlib_random, only: random_seed
+   use stdlib_stats_distribution_uniform, only: rvs_uniform
+   use stdlib_constants, only: PI => PI_dp
    use stdlib_io_npy, only: save_npy
+
+   use array_io, only: geomspace_int
+   use aubry_andre, only: energy_grid, cavaa_rgf_transmission
    implicit none
 
    character(len=256) :: outname
-   integer :: Nph, seed, Ndisorder, NEpoints, NLpoints
+   integer :: seed, actual_seed
+   integer :: Nph, Ndisorder, NEpoints, NLpoints
    real(dp) :: t, V
    real(dp) :: tcS, tcD, tlead, muS, muD
    real(dp) :: omega, g
@@ -17,25 +21,22 @@ program main
    real(dp), allocatable :: transmissions(:, :, :)
    real(dp) :: Emin, Emax
    integer :: Lmin, Lmax
-   real(dp), parameter :: INV_PHI = (sqrt(5.0_dp) - 1.0_dp)/2.0_dp
    real(dp), parameter :: ETA = 1.0e-10_dp
 
    integer :: i, j, k
-   ! character(len=32) :: jstr
 
    call readInput()
 
    call writeInput("parameters_"//trim(outname)//".txt")
 
-   call rng_initialize(seed)
+   call random_seed(put=seed, get=actual_seed)
 
    allocate (energies(NEpoints))
-   allocate (phis(Ndisorder))
    allocate (transmissions(NLpoints, NEpoints, Ndisorder))
 
    lengths = geomspace_int(start=Lmin, stp=Lmax, num=NLpoints)
    call energy_grid(Egrid=energies, Emin=Emin, Emax=Emax)
-   call aa_random_phases(phis)
+   phis = rvs_uniform(loc=0.0_dp, scale=2.0_dp*PI, array_size=Ndisorder)
 
    do k = 1, NLpoints
       do i = 1, NEpoints
@@ -84,6 +85,8 @@ contains
    subroutine writeInput(filename)
       character(len=*), intent(in) :: filename
       integer :: unit
+
+      real(dp), parameter :: INV_PHI = (sqrt(5.0_dp) - 1.0_dp)/2.0_dp
 
       open (newunit=unit, file=filename, status="replace", action="write")
 
