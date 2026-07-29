@@ -1,0 +1,4 @@
+[submodule "vendor/stdlib"]
+	path = vendor/stdlib
+	url = https://github.com/fortran-lang/stdlib
+	branch = stdlib-fpm
