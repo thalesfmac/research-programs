@@ -5,17 +5,6 @@ module lapack_blas_interface
    public
 
    interface
-      subroutine zheev(jobz, uplo, n, a, lda, w, work, lwork, rwork, info)
-         import :: real64
-         character(len=1), intent(in) :: jobz, uplo
-         integer, intent(in) :: n, lda, lwork
-         integer, intent(out) :: info
-         complex(real64), intent(inout) :: a(lda, *)
-         real(real64), intent(out) :: w(*)
-         complex(real64), intent(inout) :: work(*)
-         real(real64), intent(inout) :: rwork(*)
-      end subroutine zheev
-
       subroutine zheevd(jobz, uplo, n, a, lda, w, work, lwork, rwork, lrwork, iwork, liwork, info)
          import :: real64
          character(len=1), intent(in) :: jobz, uplo
