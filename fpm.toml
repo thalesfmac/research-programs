@@ -23,8 +23,8 @@ debug.ifort.flags = "-O0 -warn all -traceback -check all -diag-disable=10448 -qm
 release.ifort.flags = "-O2 -diag-disable=10448 -qmkl"
 
 [profiles]
+default = ["release"]
 debug = ["debug"]
-release = ["release"]
 
 [library]
 source-dir = "src"
