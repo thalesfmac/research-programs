@@ -31,8 +31,7 @@ release = ["release"]
 source-dir = "src"
 
 [dependencies]
-blas = "*"
-stdlib = "*"
+stdlib = { path = "vendor/stdlib", preprocess.cpp.macros=["STDLIB_EXTERNAL_BLAS", "STDLIB_EXTERNAL_LAPACK"] }
 
 [[test]]
 name = "test-lapack-blas"
