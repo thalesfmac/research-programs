@@ -9,7 +9,6 @@ description = "Programs developed for physics simulations"
 auto-executables = true
 auto-tests = false
 auto-examples = false
-link = ["lapack", "blas"]
 
 [fortran]
 implicit-typing = false
@@ -17,11 +16,11 @@ implicit-external = false
 source-form = "free"
 
 [features]
-debug.gfortran.flags = "-Og -Wall -Wextra -g -fcheck=all -fbacktrace"
-debug.ifort.flags = "-O0 -warn all -traceback -check all -diag-disable=10448"
+debug.gfortran.flags = "-Og -Wall -Wextra -g -fcheck=all -fbacktrace -llapack -lblas"
+release.gfortran.flags = "-O2 -llapack -lblas"
 
-release.gfortran.flags = "-O2"
-release.ifort.flags = "-O2 -diag-disable=10448"
+debug.ifort.flags = "-O0 -warn all -traceback -check all -diag-disable=10448 -qmkl"
+release.ifort.flags = "-O2 -diag-disable=10448 -qmkl"
 
 [profiles]
 debug = ["debug"]
