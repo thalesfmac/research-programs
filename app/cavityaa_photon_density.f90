@@ -2,6 +2,7 @@ program main
    use stdlib_kinds, only: dp
    use stdlib_io_npy, only: save_npy
    use stdlib_linalg, only: eigh
+   use stdlib_datetime, only: datetime_type, timedelta_type, now, format_timedelta, operator(-)
 
    use aubry_andre, only: cavaa_hamiltonian, photon_probability
    implicit none
@@ -16,15 +17,18 @@ program main
    integer :: NN
    complex(dp), allocatable :: H(:, :)
    real(dp), allocatable :: egv(:), Pph(:, :)
-   ! character(len=32) :: jstr
+
+   type(datetime_type) :: time_start, time_end
+   type(timedelta_type) :: elapsed
+
+   time_start = now()
 
    call readInput()
 
-   NN = L*(Nph + 1)
-
    call writeInput("parameters_"//trim(outname)//".txt")
 
-   allocate (H(NN, NN), egv(NN))
+   NN = L*(Nph + 1)
+   allocate (egv(NN))
 
    call cavaa_hamiltonian(H, L, Nph, t, V, PHI, gam, omega)
    call eigh(H, egv, overwrite_a=.true.)
@@ -32,6 +36,10 @@ program main
 
    call save_npy("energies_"//trim(outname)//".npy", egv)
    call save_npy("photon_prob_"//trim(outname)//".npy", Pph)
+
+   time_end = now()
+   elapsed = time_end - time_start
+   write (*, '("Execution time: ",a)') format_timedelta(elapsed)
 
 contains
 

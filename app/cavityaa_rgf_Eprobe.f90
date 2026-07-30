@@ -4,6 +4,7 @@ program main
    use stdlib_stats_distribution_uniform, only: rvs_uniform
    use stdlib_constants, only: PI => PI_dp
    use stdlib_io_npy, only: save_npy
+   use stdlib_datetime, only: datetime_type, timedelta_type, now, format_timedelta, operator(-)
 
    use aubry_andre, only: energy_grid, cavaa_rgf_transmission
    implicit none
@@ -21,6 +22,11 @@ program main
    real(dp), parameter :: ETA = 1.0e-10_dp
 
    integer :: i, j
+
+   type(datetime_type) :: time_start, time_end
+   type(timedelta_type) :: elapsed
+
+   time_start = now()
 
    call readInput()
 
@@ -59,6 +65,10 @@ program main
    call save_npy("transmissions_"//trim(outname)//".npy", transmissions)
    call save_npy("aa_phases_"//trim(outname)//".npy", phis)
    call save_npy("energies_"//trim(outname)//".npy", energies)
+
+   time_end = now()
+   elapsed = time_end - time_start
+   write (*, '("Execution time: ",a)') format_timedelta(elapsed)
 
 contains
 
