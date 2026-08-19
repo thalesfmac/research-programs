@@ -3,11 +3,12 @@ program main
    use stdlib_random, only: random_seed
    use stdlib_stats_distribution_uniform, only: rvs_uniform
    use stdlib_constants, only: PI => PI_dp
+   use stdlib_linalg, only: eigvalsh
    use stdlib_io_npy, only: save_npy
    use stdlib_datetime, only: datetime_type, timedelta_type, now, format_timedelta, operator(-)
 
    use array_utils, only: geomspace_int
-   use aubry_andre, only: energy_grid, cavaa_rgf_transmission
+   use aubry_andre, only: energy_grid, cavaa_rgf_transmission, cavaa_hamiltonian
    implicit none
 
    character(len=256) :: outname
@@ -24,6 +25,9 @@ program main
    integer :: Lmin, Lmax
    real(dp), parameter :: ETA = 1.0e-10_dp
 
+   complex(dp), allocatable :: H(:, :)
+   real(dp), allocatable :: eig(:), w(:, :, :)
+
    integer :: i, j, k
 
    type(datetime_type) :: time_start, time_end
@@ -39,6 +43,7 @@ program main
 
    allocate (energies(NEpoints))
    allocate (transmissions(NLpoints, NEpoints, Ndisorder))
+   allocate (w(NLpoints, L, Ndisorder))
 
    lengths = geomspace_int(start=Lmin, stp=Lmax, num=NLpoints)
    call energy_grid(Egrid=energies, Emin=Emin, Emax=Emax)
@@ -62,6 +67,9 @@ program main
                                      tlead=tlead, &
                                      muL=muS, &
                                      muR=muD)
+
+            call cavaa_hamiltonian(H=H, L=lengths(k), Nph=Nph, t=t, V=V, phi=phis(j), gam=g, omega=omega)
+            eig = eigvalsh(H)
          end do
 
          write (*, '("Done: L = ",i0,", E = ",g0)') lengths(k), energies(i)
