@@ -12,11 +12,10 @@ contains
 
    function f(x) result(res)
       real(dp), intent(in) :: x
-      complex(dp) :: res
+      complex(dp) :: arg, res
 
-      if (abs(x) >= 2.0_dp) error stop "f: |x| must be < 2"
-
-      res = cmplx(x, -sqrt(4.0_dp - x*x), kind=dp)
+      arg = cmplx(x*x - 4.0_dp, kind=dp)
+      res = cmplx(x, kind=dp) - sqrt(arg)
    end function f
 
    function surface_gf_1d(E, tlead, mu) result(gs)
