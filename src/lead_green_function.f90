@@ -18,14 +18,20 @@ contains
       res = cmplx(x, kind=dp) - sqrt(arg)
    end function f
 
-   function surface_gf_1d(E, tlead, mu) result(gs)
+   function surface_gf_1d(E, tlead, mu, eta) result(gs)
+      use stdlib_optval, only: optval
       real(dp), intent(in) :: E, tlead, mu
+      real(dp), intent(in), optional :: eta
       complex(dp) :: gs
 
       real(dp) :: x
 
       x = (E - mu)/tlead
       gs = f(x)/cmplx(2.0_dp*tlead, kind=dp)
+
+      if (abs(E - mu) >= 2.0_dp*tlead) then
+         gs = gs - cmplx(0.0_dp, optval(eta, 0.0_dp), kind=dp)
+      end if
    end function surface_gf_1d
 
    subroutine surface_self_energy_left(surf_gf_l, u_left, sigma_left)
