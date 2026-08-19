@@ -2,8 +2,8 @@ module lead_green_function
    use stdlib_kinds, only: dp
    use matrix_operations, only: matmul3
    implicit none
-
    private
+
    public :: surface_gf_1d
    public :: surface_self_energy_left, surface_self_energy_right
    public :: broadening
@@ -49,6 +49,7 @@ contains
    end subroutine surface_self_energy_right
 
    subroutine broadening(sigma, gam)
+      use stdlib_linalg, only: hermitian
       complex(dp), intent(in), contiguous :: sigma(:, :)
       complex(dp), intent(out), contiguous :: gam(:, :)
 
@@ -59,7 +60,7 @@ contains
          error stop "broadening: gam has incompatible dimensions with sigma"
       end if
 
-      gam = CI*(sigma - conjg(transpose(sigma)))
+      gam = CI*(sigma - hermitian(sigma))
    end subroutine broadening
 
 end module lead_green_function
