@@ -169,8 +169,8 @@ contains
       cE = eye(size(cE, 1), mold=(0.0_dp, 0.0_dp))
       cE = cmplx(E, eta, kind=dp)*cE
 
-      g_L(0, 0) = surface_gf_1d(E, tlead, muL)
-      g_R(0, 0) = surface_gf_1d(E, tlead, muR)
+      g_L(0, 0) = surface_gf_1d(E, tlead, muL, eta)
+      g_R(0, 0) = surface_gf_1d(E, tlead, muR, eta)
 
       u_left(0, 0) = cmplx(-tlead, kind=dp)
       u_right(0, 0) = cmplx(-tlead, kind=dp)
