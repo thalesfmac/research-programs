@@ -43,7 +43,7 @@ program main
 
    allocate (energies(NEpoints))
    allocate (transmissions(NLpoints, NEpoints, Ndisorder))
-   allocate (w(NLpoints, L, Ndisorder))
+   ! allocate (w(NLpoints, L, Ndisorder))
 
    lengths = geomspace_int(start=Lmin, stp=Lmax, num=NLpoints)
    call energy_grid(Egrid=energies, Emin=Emin, Emax=Emax)
